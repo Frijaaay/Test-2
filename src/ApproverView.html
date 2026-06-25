@@ -1,0 +1,362 @@
+<!-- Approver Workspaces Main Queue Container -->
+<div id="approver-dashboard-view">
+  <div class="flex items-center justify-between mb-5">
+    <h1 class="section-title">Technical Approvals Queue</h1>
+    <span id="approver-count" class="text-xs font-mono font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
+  </div>
+
+  <div class="cvg-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="text-left text-[11px] text-gray-400 border-b border-gray-100 bg-gray-50/50 uppercase tracking-wider font-semibold">
+            <th class="py-4 px-6">Request ID</th>
+            <th class="py-4 px-6">Requestor</th>
+            <th class="py-4 px-6">Submission Date</th>
+            <th class="py-4 px-6">Status</th>
+            <th class="py-4 px-6"></th>
+          </tr>
+        </thead>
+        <tbody id="approver-dashboard-rows" class="divide-y divide-gray-100"></tbody>
+      </table>
+    </div>
+    <div id="approver-dashboard-empty" class="hidden-view text-center py-20 text-gray-400">
+      <p class="text-[13.5px]">No requests currently pending final sign-off approval.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Approver Workspace Details View -->
+<div id="approver-details-view" class="hidden-view animate-fade-up">
+  <button id="btn-back-approver" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    Back to Approvals Queue
+  </button>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <div class="cvg-card p-6 flex flex-col gap-1">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-3">
+        <h2 class="section-title">Request ID: <span id="approver-id-header" class="font-mono-cvg text-brand"></span></h2>
+        <span id="approver-status-header"></span>
+      </div>
+
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Requestor Name</span>
+        <span id="approver-field-name" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Email Address</span>
+        <span id="approver-field-email" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Company</span>
+        <span id="approver-field-company" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Contact Information</span>
+        <span id="approver-field-contact" class="data-val">—</span>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="flex flex-col gap-6">
+      <div class="cvg-card p-6 flex flex-col gap-4">
+        <div>
+          <h2 class="section-title mb-4">Workspace Specifications</h2>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Request Type</p>
+              <p id="approver-field-type" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Schedule</p>
+              <p id="approver-field-schedule" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Device Model</p>
+              <p id="approver-field-device" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Target Environment</p>
+              <p id="approver-field-env" class="text-gray-800 font-medium">—</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Summary of Request</p>
+          <p id="approver-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Detailed Description</p>
+          <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <!-- Secure Attachment Blocks using Private Proxy Gateway [1, 3] -->
+        <div class="border-t border-gray-100 pt-4 flex flex-col gap-3">
+          <p class="section-title mb-1">Secure Attachment Verification</p>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Test Plan</span>
+            <div id="approver-file-test-plan"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Firmware/APK Files</span>
+            <div id="approver-file-apk"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Device Specifications</span>
+            <div id="approver-file-specs"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Release Notes</span>
+            <div id="approver-file-release"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Supporting Documents</span>
+            <div id="approver-file-supporting"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multi-Sheet Integration: Displays Tester's Findings compiled from Test Results [3] -->
+      <div id="approver-test-results-card" class="hidden-view cvg-card p-6 flex flex-col gap-4 border-l-4 border-l-brand-400">
+        <div class="flex items-center gap-2">
+          <span class="text-[15px]">📋</span>
+          <h2 class="section-title">Tester Results & Findings</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Outcome Status</p>
+            <span id="approver-test-outcome-badge">—</span>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Timestamp</p>
+            <p id="approver-test-timestamp" class="text-gray-800 font-medium">—</p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Findings</p>
+            <p id="approver-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Known Issues</p>
+            <p id="approver-test-issues" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Required Actions</p>
+            <p id="approver-test-actions" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Supporting Screenshots / Files</p>
+            <div id="approver-test-screenshots-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel: Approver Sign-Off Flow -->
+      <div id="approver-action-panel" class="hidden-view cvg-card p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <p class="section-title">Submit Sign-Off Decision</p>
+        </div>
+        <!-- Decision Options matching Flowchart including Return for Revision [Slide 5] -->
+        <div class="grid grid-cols-4 gap-2 mb-4">
+          <button class="review-choice text-center px-1 text-xs" data-signoff="Approved">Approve</button>
+          <button class="review-choice text-center px-1 text-xs" data-signoff="Passed with Conditions">Approve w/ Cond.</button>
+          <button class="review-choice text-center px-1 text-xs" data-signoff="Rejected">Reject</button>
+          <button class="review-choice text-center px-1 text-xs" data-signoff="Return For Revision">Return for Revision</button>
+        </div>
+        <div id="approver-remarks-wrap" class="hidden-view mb-4">
+          <textarea id="approver-remarks" rows="3" placeholder="Provide additional comments or validation remarks..."
+            class="cvg-textarea w-full p-3 font-sans"></textarea>
+        </div>
+        <button id="btn-submit-approver" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+          Submit Sign-Off Decision
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ApproverView = {
+    state: {
+      signoffChoice: null
+    },
+
+    initModule() {
+      const container = document.getElementById('header-nav');
+      container.innerHTML = '';
+
+      const tabs = [
+        { label: 'All Requests', value: 'all' },
+        { label: 'For Approvals', value: 'assigned' }
+      ];
+
+      tabs.forEach(function (tab) {
+        const button = document.createElement('button');
+        button.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg border transition-all duration-150';
+        button.textContent = tab.label;
+        
+        if (state.currentTab === tab.value) {
+          button.classList.add('bg-brand-50', 'text-brand', 'border-brand-200/60', 'shadow-sm');
+        } else {
+          button.classList.add('text-gray-600', 'border-transparent', 'hover:bg-gray-100', 'hover:text-gray-800');
+        }
+        
+        button.addEventListener('click', function () {
+          state.currentTab = tab.value;
+          showView('container-approver');
+          ApproverView.initModule();
+          ApproverView.renderDashboard(state.allRows);
+        });
+        
+        container.appendChild(button);
+      });
+
+      document.getElementById('btn-back-approver').onclick = function() {
+        showView('view-loading');
+        google.script.run
+          .withSuccessHandler(handleServerResponse)
+          .withFailureHandler(handleServerFailure)
+          .authenticateAndFetch(state.token, '');
+      };
+    },
+
+    getFilteredDataset(rows) {
+      if (state.currentTab === 'assigned') {
+        return rows.filter(row => row.status === 'Completed');
+      }
+      return rows;
+    },
+
+    renderDashboard(rows, options) {
+      const filtered = options && options.preFiltered ? rows : this.getFilteredDataset(rows);
+
+      document.getElementById('approver-dashboard-view').classList.remove('hidden-view');
+      document.getElementById('approver-details-view').classList.add('hidden-view');
+
+      const tbody = document.getElementById('approver-dashboard-rows');
+      tbody.innerHTML = '';
+
+      document.getElementById('approver-count').textContent = filtered.length + (filtered.length === 1 ? ' request' : ' requests');
+
+      if (!filtered.length) {
+        document.getElementById('approver-dashboard-empty').classList.remove('hidden-view');
+        return;
+      }
+      document.getElementById('approver-dashboard-empty').classList.add('hidden-view');
+
+      filtered.forEach(function (row) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 last:border-0 hover:bg-slate-50/50 transition-colors';
+        tr.innerHTML =
+          '<td class="py-4 px-6 font-mono font-medium text-gray-700">' + escapeHtml(row.requestId) + '</td>' +
+          '<td class="py-4 px-6 font-medium text-gray-800">' + escapeHtml(row.requestorName || row.requestorEmail) + '</td>' +
+          '<td class="py-4 px-6 text-gray-500">' + escapeHtml(row.dateSubmitted) + '</td>' +
+          '<td class="py-4 px-6">' + badgeHtml(row.status) + '</td>' +
+          '<td class="py-4 px-6 text-right">' +
+            '<button class="text-xs font-semibold text-brand hover:text-brand-600 hover:underline transition-colors" onclick="openRequest(\'' + escapeHtml(row.requestId) + '\')">Open workspace</button>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    },
+
+    renderDetails(data) {
+      document.getElementById('container-approver').classList.remove('hidden-view');
+      document.getElementById('approver-dashboard-view').classList.add('hidden-view');
+      document.getElementById('approver-details-view').classList.remove('hidden-view');
+
+      document.getElementById('approver-id-header').textContent = data.requestId;
+      document.getElementById('approver-status-header').outerHTML = badgeHtml(data.status, 'approver-status-header');
+
+      document.getElementById('approver-field-name').textContent = data.requestorName || '—';
+      document.getElementById('approver-field-email').textContent = data.requestorEmail || '—';
+      document.getElementById('approver-field-company').textContent = data.company || '—';
+      document.getElementById('approver-field-contact').textContent = data.contactInfo || '—';
+
+      document.getElementById('approver-field-type').textContent = data.requestType || '—';
+      document.getElementById('approver-field-schedule').textContent = data.testSchedule || '—';
+      document.getElementById('approver-field-device').textContent = data.deviceModel || '—';
+      document.getElementById('approver-field-env').textContent = data.targetEnvironment || '—';
+      document.getElementById('approver-field-summary').textContent = data.summary || '—';
+      document.getElementById('approver-field-description').textContent = data.detailedDescription || '—';
+
+      // Attach Secure Proxy File Download Buttons
+      renderAttachmentButtons('approver-file-test-plan', data.testPlanUrl, 'Test Plan');
+      renderAttachmentButtons('approver-file-apk', data.firmwareFilesUrl, 'Firmware/APK');
+      renderAttachmentButtons('approver-file-specs', data.deviceSpecs, 'Specifications');
+      renderAttachmentButtons('approver-file-release', data.releaseNotesUrl, 'Release Notes');
+      renderAttachmentButtons('approver-file-supporting', data.supportingDocsUrl, 'Supporting Doc');
+
+      // Multi-Sheet Results Loader Block [3]
+      const resultsCard = document.getElementById('approver-test-results-card');
+      resultsCard.classList.add('hidden-view');
+      
+      if (data.testResults) {
+        resultsCard.classList.remove('hidden-view');
+        document.getElementById('approver-test-outcome-badge').outerHTML = badgeHtml(data.testResultStatus || 'Completed', 'approver-test-outcome-badge');
+        document.getElementById('approver-test-timestamp').textContent = data.testResults.timestamp || '—';
+        document.getElementById('approver-test-findings').textContent = data.testResults.testFindings || '—';
+        document.getElementById('approver-test-issues').textContent = data.testResults.knownIssues || '—';
+        document.getElementById('approver-test-actions').textContent = data.testResults.requiredActions || '—';
+        
+        renderAttachmentButtons('approver-test-screenshots-container', data.testResults.supportingFiles, 'Screenshot');
+      }
+
+      this.resetApproverDecisionPanel();
+
+      const actionPanel = document.getElementById('approver-action-panel');
+      actionPanel.classList.add('hidden-view');
+
+      if (data.status === 'Completed') {
+        actionPanel.classList.remove('hidden-view');
+        this.initApproverControls(data);
+      }
+    },
+
+    resetApproverDecisionPanel() {
+      this.state.signoffChoice = null;
+      document.getElementById('approver-action-panel').classList.add('hidden-view');
+      document.getElementById('approver-remarks-wrap').classList.add('hidden-view');
+      document.getElementById('approver-remarks').value = '';
+      document.querySelectorAll('#approver-action-panel .review-choice').forEach(el => el.classList.remove('active'));
+      document.getElementById('btn-submit-approver').disabled = true;
+    },
+
+    initApproverControls(data) {
+      const panel = document.getElementById('approver-action-panel');
+      const remarksWrap = document.getElementById('approver-remarks-wrap');
+      const submitBtn = document.getElementById('btn-submit-approver');
+
+      panel.querySelectorAll('[data-signoff]').forEach(btn => {
+        btn.onclick = () => {
+          panel.querySelectorAll('[data-signoff]').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+          this.state.signoffChoice = btn.getAttribute('data-signoff');
+          
+          const needsRemarks = (this.state.signoffChoice === 'Rejected' || 
+                                this.state.signoffChoice === 'Passed with Conditions' ||
+                                this.state.signoffChoice === 'Return For Revision');
+          remarksWrap.classList.toggle('hidden-view', !needsRemarks);
+          submitBtn.disabled = false;
+        };
+      });
+
+      submitBtn.onclick = () => {
+        const remarksVal = document.getElementById('approver-remarks').value.trim();
+        if ((this.state.signoffChoice === 'Rejected' || 
+             this.state.signoffChoice === 'Passed with Conditions' || 
+             this.state.signoffChoice === 'Return For Revision') && !remarksVal) {
+          toast('Remarks are required for this sign-off choice.', true);
+          return;
+        }
+
+        submitDecision({
+          newStatus: (this.state.signoffChoice === 'Return For Revision') ? 'Return For Revision' : 'Completed',
+          outcome: (this.state.signoffChoice === 'Return For Revision') ? null : this.state.signoffChoice,
+          remarks: remarksVal
+        });
+      };
+    }
+  };
+</script>

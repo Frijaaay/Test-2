@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; padding: 20px; margin: 0;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; border-top: 5px solid #048986; border-collapse: collapse;">
+    <!-- Header -->
+    <tr>
+      <td style="padding: 20px; text-align: left;">
+        <!-- Hardcoded Logo -->
+        <img src="https://d2etujs75nvebv.cloudfront.net/images/converge-logo.svg" alt="Logo" style="height: 50px; display: block;">
+      </td>
+    </tr>
+    
+    <!-- Content -->
+    <tr>
+      <td style="padding: 0 40px 20px 40px;">
+        <h2 style="color: #048986; margin-top: 0;"><?= data.title ?></h2>
+        <p>Hi <?= data.name ?>,</p>
+        <p><?!= data.message_body ?></p>
+        
+        <div style="background-color: #f9f9f9; border-left: 4px solid #048986; padding: 15px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Request ID:</strong> <?= data.request_id ?></p>
+          <p style="margin: 5px 0;"><strong>Request Type:</strong> <?= data.type ?></p>
+          <p style="margin: 5px 0;"><strong>Summary of Request:</strong> <?= data.summary ?></p>
+          <p style="margin: 5px 0;"><strong>Date Submitted:</strong> <?= data.date_submitted ?></p>
+          
+          <? if (data.test_schedule) { ?>
+            <p style="margin: 5px 0;"><strong>Test Schedule:</strong> <?= data.test_schedule ?></p>
+          <? } ?>
+          
+          <? if (data.reason) { ?>
+            <p style="margin: 5px 0;"><strong>Remarks:</strong> <?= data.reason ?></p>
+          <? } ?>
+        </div>
+
+        <!-- File Attachments -->
+        <? if (data.hasAttachments) { ?>
+          <h3 style="color: #048986; margin-bottom: 10px; font-size: 16px;">Attached Files</h3>
+          <ul style="padding-left: 20px; margin-top: 0;">
+            <? data.attachment_list.forEach(function(file) { ?>
+              <li style="margin-bottom: 5px;">
+                <a href="<?= file.url ?>" style="color: #048986; text-decoration: underline;">
+                  <?= file.name ?>
+                </a>
+              </li>
+            <? }); ?>
+          </ul>
+        <? } ?>
+        <? if (data.footer_closing) { ?>
+        <p style="white-space: pre-line; color: #555555;"><?= data.footer_closing ?></p>
+        <? } ?>
+        <!-- Dynamic Buttons Slot -->
+        <? if (data.hasButtons) { ?>
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px;">
+            <tr>
+              <td align="center">
+                <? data.buttons.forEach(function(btn) { ?>
+                  <a href="<?= btn.url ?>" style="background-color: #048986; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin: 5px;">
+                    <?= btn.text ?>
+                  </a>
+                <? }); ?>
+              </td>
+            </tr>
+          </table>
+        <? } ?>
+        
+      </td>
+    </tr>
+    
+    <!-- Footer -->
+    <tr>
+      <td style="background-color: #fdfdfd; padding: 20px 40px; border-top: 1px solid #eeeeee;">
+        <table width="100%">
+          <tr>
+            <td width="50%" align="left">
+              <!-- Hardcoded Logo -->
+              <img src="https://d2etujs75nvebv.cloudfront.net/images/converge-logo.svg" alt="Logo" style="height: 30px; opacity: 0.8;">
+            </td>
+            <td width="50%" align="right" style="font-size: 11px; color: #999999; line-height: 1.2;">
+              This is a system-generated email.<br>Please do not reply to this message.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

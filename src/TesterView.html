@@ -1,0 +1,448 @@
+<!-- Tester Workspaces Main Queue Container -->
+<div id="tester-dashboard-view">
+  <div class="flex items-center justify-between mb-5">
+    <h1 class="section-title">Assigned Testing Queues</h1>
+    <span id="tester-count" class="text-xs font-mono font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
+  </div>
+
+  <div class="cvg-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="text-left text-[11px] text-gray-400 border-b border-gray-100 bg-gray-50/50 uppercase tracking-wider font-semibold">
+            <th class="py-4 px-6">Request ID</th>
+            <th class="py-4 px-6">Requestor</th>
+            <th class="py-4 px-6">Submission Date</th>
+            <th class="py-4 px-6">Status</th>
+            <th class="py-4 px-6"></th>
+          </tr>
+        </thead>
+        <tbody id="tester-dashboard-rows" class="divide-y divide-gray-100"></tbody>
+      </table>
+    </div>
+    <div id="tester-dashboard-empty" class="hidden-view text-center py-20 text-gray-400">
+      <p class="text-[13.5px]">No active work requests found inside this view tab.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tester Workspace Details View -->
+<div id="tester-details-view" class="hidden-view animate-fade-up">
+  <button id="btn-back-tester" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    Back to Testing Queue
+  </button>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <div class="cvg-card p-6 flex flex-col gap-1">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-3">
+        <h2 class="section-title">Request ID: <span id="tester-id-header" class="font-mono-cvg text-brand"></span></h2>
+        <span id="tester-status-header"></span>
+      </div>
+
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Requestor Name</span>
+        <span id="tester-field-name" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Email Address</span>
+        <span id="tester-field-email" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Company</span>
+        <span id="tester-field-company" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Contact Information</span>
+        <span id="tester-field-contact" class="data-val">—</span>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="flex flex-col gap-6">
+      <div class="cvg-card p-6 flex flex-col gap-4">
+        <div>
+          <h2 class="section-title mb-4">Workspace Specifications</h2>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Request Type</p>
+              <p id="tester-field-type" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Schedule</p>
+              <p id="tester-field-schedule" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Firmware/App Version</p>
+              <p id="tester-field-firmware" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Device Model</p>
+              <p id="tester-field-model" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Target Environment</p>
+              <p id="tester-field-env" class="text-gray-800 font-medium">—</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Summary of Request</p>
+          <p id="tester-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Detailed Description</p>
+          <p id="tester-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <!-- Secure Attachment Blocks using Private Proxy Gateway [1, 3] -->
+        <div class="border-t border-gray-100 pt-4 flex flex-col gap-3">
+          <p class="section-title mb-1">Secure Attachment Verification</p>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Test Plan</span>
+            <div id="tester-file-test-plan"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Firmware/APK Files</span>
+            <div id="tester-file-apk"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Device Specifications</span>
+            <div id="tester-file-specs"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Release Notes</span>
+            <div id="tester-file-release"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Supporting Documents</span>
+            <div id="tester-file-supporting"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel: Stage 1 (Claims and Review Transitions) -->
+      <div id="tester-action-panel" class="hidden-view">
+        
+        <!-- Stage 1 Decision Controls -->
+        <div id="tester-stage1-controls" class="hidden-view cvg-card p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <p class="section-title">Record Review Decision</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <button id="btn-choice-testing" class="review-choice text-center">In Testing</button>
+            <button id="btn-choice-revision1" class="review-choice text-center">Return For Revision</button>
+          </div>
+          <div id="tester-stage1-remarks-wrap" class="hidden-view mb-4">
+            <textarea id="tester-stage1-remarks" rows="3" placeholder="Provide clear revision requirements for the requestor..."
+              class="cvg-textarea w-full p-3 font-sans"></textarea>
+          </div>
+          <button id="btn-submit-tester-stage1" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+            Submit Stage 1 Decision
+          </button>
+        </div>
+
+        <!-- Stage 2 Decision Controls -->
+        <div id="tester-stage2-controls" class="hidden-view cvg-card p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <p class="section-title">Record Verification Decision</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <button id="btn-choice-revision2" class="review-choice text-center">Return For Revision</button>
+            <button id="btn-choice-completed" class="review-choice text-center">Completed</button>
+          </div>
+
+          <div id="tester-stage2-completed-wrap" class="hidden-view space-y-4 mb-4">
+            <a id="tester-form-link" href="#" target="_blank"
+               class="block text-center text-[13px] font-semibold py-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50/10 text-gray-600 transition-colors">
+              Open Evaluation Form ↗
+            </a>
+            <!-- Terminology aligned to formal flowchart result options [Slide 4] -->
+            <div class="grid grid-cols-3 gap-2">
+              <button class="review-choice text-center px-1 text-xs" data-outcome="Approved">Passed</button>
+              <button class="review-choice text-center px-1 text-xs" data-outcome="Passed with Conditions">Passed w/ Cond.</button>
+              <button class="review-choice text-center px-1 text-xs" data-outcome="Rejected">Failed</button>
+            </div>
+          </div>
+
+          <div id="tester-stage2-remarks-wrap" class="hidden-view mb-4">
+            <textarea id="tester-stage2-remarks" rows="3" placeholder="Specify decision remarks or validation caveats..."
+              class="cvg-textarea w-full p-3 font-sans"></textarea>
+          </div>
+
+          <button id="btn-submit-tester-stage2" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+            Submit Verification Decision
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TesterView = {
+    state: {
+      activeTab: 'all',
+      stage1Choice: null,
+      stage2Choice: null,
+      outcomeChoice: null
+    },
+
+    initModule() {
+      const container = document.getElementById('header-nav');
+      container.innerHTML = '';
+
+      const tabs = [
+        { label: 'All Requests', value: 'all' },
+        { label: 'Assigned Requests', value: 'assigned' }
+      ];
+
+      tabs.forEach(function (tab) {
+        const button = document.createElement('button');
+        button.className = 'text-xs font-semibold px-3.5 py-1.5 rounded-lg border transition-all duration-150';
+        button.textContent = tab.label;
+        
+        if (state.currentTab === tab.value) {
+          button.classList.add('bg-brand-50', 'text-brand', 'border-brand-200/60', 'shadow-sm');
+        } else {
+          button.classList.add('text-gray-600', 'border-transparent', 'hover:bg-gray-100', 'hover:text-gray-800');
+        }
+        
+        button.addEventListener('click', function () {
+          state.currentTab = tab.value;
+          showView('container-tester');
+          TesterView.initModule();
+          TesterView.renderDashboard(state.allRows);
+        });
+        
+        container.appendChild(button);
+      });
+
+      document.getElementById('btn-back-tester').onclick = function() {
+        showView('view-loading');
+        google.script.run
+          .withSuccessHandler(handleServerResponse)
+          .withFailureHandler(handleServerFailure)
+          .authenticateAndFetch(state.token, '');
+      };
+    },
+
+    getFilteredDataset(rows) {
+      const myEmail = state.viewerEmail.toLowerCase();
+      if (state.currentTab === 'assigned') {
+        return rows.filter(row => String(row.tester || '').toLowerCase() === myEmail);
+      }
+      // Tab 'all' maps strictly to "All Unassigned" [Submitted/Resubmitted & no tester] [3.2.1]
+      if (state.currentTab === 'all') {
+        return rows.filter(row => 
+          (row.status === 'Submitted' || row.status === 'Resubmitted') && 
+          (!row.tester || row.tester.trim() === '')
+        );
+      }
+      return rows;
+    },
+
+    renderDashboard(rows, options) {
+      const filtered = options && options.preFiltered ? rows : this.getFilteredDataset(rows);
+
+      document.getElementById('tester-dashboard-view').classList.remove('hidden-view');
+      document.getElementById('tester-details-view').classList.add('hidden-view');
+
+      const tbody = document.getElementById('tester-dashboard-rows');
+      tbody.innerHTML = '';
+
+      document.getElementById('tester-count').textContent = filtered.length + (filtered.length === 1 ? ' request' : ' requests');
+
+      if (!filtered.length) {
+        document.getElementById('tester-dashboard-empty').classList.remove('hidden-view');
+        return;
+      }
+      document.getElementById('tester-dashboard-empty').classList.add('hidden-view');
+
+      filtered.forEach(function (row) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 last:border-0 hover:bg-slate-50/50 transition-colors';
+        tr.innerHTML =
+          '<td class="py-4 px-6 font-mono font-medium text-gray-700">' + escapeHtml(row.requestId) + '</td>' +
+          '<td class="py-4 px-6 font-medium text-gray-800">' + escapeHtml(row.requestorName || row.requestorEmail) + '</td>' +
+          '<td class="py-4 px-6 text-gray-500">' + escapeHtml(row.dateSubmitted) + '</td>' +
+          '<td class="py-4 px-6">' + badgeHtml(row.status) + '</td>' +
+          '<td class="py-4 px-6 text-right">' +
+            '<button class="text-xs font-semibold text-brand hover:text-brand-600 hover:underline transition-colors" onclick="openRequest(\'' + escapeHtml(row.requestId) + '\')">Open workspace</button>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    },
+
+    renderDetails(data) {
+      document.getElementById('container-tester').classList.remove('hidden-view');
+      document.getElementById('tester-dashboard-view').classList.add('hidden-view');
+      document.getElementById('tester-details-view').classList.remove('hidden-view');
+
+      document.getElementById('tester-id-header').textContent = data.requestId;
+      document.getElementById('tester-status-header').outerHTML = badgeHtml(data.status, 'tester-status-header');
+
+      document.getElementById('tester-field-name').textContent = data.requestorName || '—';
+      document.getElementById('tester-field-email').textContent = data.requestorEmail || '—';
+      document.getElementById('tester-field-company').textContent = data.company || '—';
+      document.getElementById('tester-field-contact').textContent = data.contactInfo || '—';
+
+      document.getElementById('tester-field-type').textContent = data.requestType || '—';
+      document.getElementById('tester-field-schedule').textContent = data.testSchedule || '—';
+      document.getElementById('tester-field-firmware').textContent = data.firmwareVersion || '—';
+      document.getElementById('tester-field-model').textContent = data.deviceModel || '—';
+      document.getElementById('tester-field-env').textContent = data.targetEnvironment || '—';
+      document.getElementById('tester-field-summary').textContent = data.summary || '—';
+      document.getElementById('tester-field-description').textContent = data.detailedDescription || '—';
+
+      // Attach Secure Proxy File Download Buttons
+      renderAttachmentButtons('tester-file-test-plan', data.testPlanUrl, 'Test Plan');
+      renderAttachmentButtons('tester-file-apk', data.firmwareFilesUrl, 'Firmware/APK');
+      renderAttachmentButtons('tester-file-specs', data.deviceSpecs, 'Specifications');
+      renderAttachmentButtons('tester-file-release', data.releaseNotesUrl, 'Release Notes');
+      renderAttachmentButtons('tester-file-supporting', data.supportingDocsUrl, 'Supporting Doc');
+
+      this.resetTesterDecisionPanel();
+      
+      const isUnassigned = (!data.tester);
+      const isMyAssignment = (data.tester && data.tester.toLowerCase() === state.viewerEmail.toLowerCase());
+      const actionPanel = document.getElementById('tester-action-panel');
+      actionPanel.classList.add('hidden-view');
+
+      if (isUnassigned || isMyAssignment) {
+        actionPanel.classList.remove('hidden-view');
+
+        if (data.status === 'Submitted' || data.status === 'Resubmitted') {
+          this.initTesterStage1(data);
+        } else if (data.status === 'In Testing') {
+          this.initTesterStage2(data);
+        } else {
+          actionPanel.classList.add('hidden-view');
+        }
+      }
+    },
+
+    resetTesterDecisionPanel() {
+      this.state.stage1Choice = null;
+      this.state.stage2Choice = null;
+      this.state.outcomeChoice = null;
+
+      document.getElementById('tester-stage1-controls').classList.add('hidden-view');
+      document.getElementById('tester-stage2-controls').classList.add('hidden-view');
+      document.getElementById('tester-stage1-remarks-wrap').classList.add('hidden-view');
+      document.getElementById('tester-stage2-completed-wrap').classList.add('hidden-view');
+      document.getElementById('tester-stage2-remarks-wrap').classList.add('hidden-view');
+      
+      document.getElementById('tester-stage1-remarks').value = '';
+      document.getElementById('tester-stage2-remarks').value = '';
+
+      document.querySelectorAll('.review-choice').forEach(el => el.classList.remove('active'));
+      document.getElementById('btn-submit-tester-stage1').disabled = true;
+      document.getElementById('btn-submit-tester-stage2').disabled = true;
+    },
+
+    initTesterStage1(data) {
+      document.getElementById('tester-stage1-controls').classList.remove('hidden-view');
+      
+      const btnTesting = document.getElementById('btn-choice-testing');
+      const btnReturn = document.getElementById('btn-choice-revision1');
+      const remarksWrap = document.getElementById('tester-stage1-remarks-wrap');
+      const submitBtn = document.getElementById('btn-submit-tester-stage1');
+
+      btnTesting.onclick = () => {
+        this.state.stage1Choice = 'In Testing';
+        btnTesting.classList.add('active');
+        btnReturn.classList.remove('active');
+        remarksWrap.classList.add('hidden-view');
+        submitBtn.disabled = false;
+      };
+
+      btnReturn.onclick = () => {
+        this.state.stage1Choice = 'Return For Revision';
+        btnTesting.classList.remove('active');
+        btnReturn.classList.add('active');
+        remarksWrap.classList.remove('hidden-view');
+        submitBtn.disabled = false;
+      };
+
+      submitBtn.onclick = () => {
+        const remarksVal = document.getElementById('tester-stage1-remarks').value.trim();
+        if (this.state.stage1Choice === 'Return For Revision' && !remarksVal) {
+          toast('Remarks are required to return this submission.', true);
+          return;
+        }
+
+        submitDecision({
+          newStatus: this.state.stage1Choice,
+          remarks: remarksVal
+        });
+      };
+    },
+
+    initTesterStage2(data) {
+      document.getElementById('tester-stage2-controls').classList.remove('hidden-view');
+      document.getElementById('tester-form-link').href = EXTERNAL_FORM_BASE + encodeURIComponent(data.requestId);
+
+      const btnReturn = document.getElementById('btn-choice-revision2');
+      const btnCompleted = document.getElementById('btn-choice-completed');
+      const completedWrap = document.getElementById('tester-stage2-completed-wrap');
+      const remarksWrap = document.getElementById('tester-stage2-remarks-wrap');
+      const submitBtn = document.getElementById('btn-submit-tester-stage2');
+
+      btnReturn.onclick = () => {
+        this.state.stage2Choice = 'Return For Revision';
+        this.state.outcomeChoice = null;
+        btnReturn.classList.add('active');
+        btnCompleted.classList.remove('active');
+        completedWrap.classList.add('hidden-view');
+        remarksWrap.classList.remove('hidden-view');
+        
+        completedWrap.querySelectorAll('.review-choice').forEach(el => el.classList.remove('active'));
+        submitBtn.disabled = false;
+      };
+
+      btnCompleted.onclick = () => {
+        this.state.stage2Choice = 'Completed';
+        btnReturn.classList.remove('active');
+        btnCompleted.classList.add('active');
+        completedWrap.classList.remove('hidden-view');
+        remarksWrap.classList.add('hidden-view');
+        submitBtn.disabled = true; 
+      };
+
+      completedWrap.querySelectorAll('[data-outcome]').forEach(btn => {
+        btn.onclick = () => {
+          completedWrap.querySelectorAll('[data-outcome]').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+          this.state.outcomeChoice = btn.getAttribute('data-outcome');
+          
+          const needsRemarks = (this.state.outcomeChoice === 'Rejected' || this.state.outcomeChoice === 'Passed with Conditions');
+          remarksWrap.classList.toggle('hidden-view', !needsRemarks);
+          submitBtn.disabled = false;
+        };
+      });
+
+      submitBtn.onclick = () => {
+        const remarksVal = document.getElementById('tester-stage2-remarks').value.trim();
+        
+        if (this.state.stage2Choice === 'Return For Revision') {
+          if (!remarksVal) { toast('Remarks are required to return this request.', true); return; }
+          submitDecision({ newStatus: 'Return For Revision', remarks: remarksVal });
+        } else {
+          if ((this.state.outcomeChoice === 'Rejected' || this.state.outcomeChoice === 'Passed with Conditions') && !remarksVal) {
+            toast('Remarks are required for conditional or failed outcomes.', true);
+            return;
+          }
+          submitDecision({
+            newStatus: 'Completed',
+            outcome: this.state.outcomeChoice,
+            remarks: remarksVal
+          });
+        }
+      };
+    }
+  };
+</script>

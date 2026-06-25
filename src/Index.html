@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <base target="_top">
+	  <meta charset="utf-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+	  <title>Test Request Space</title>
+	  
+	  <!-- Tailwind CSS Play CDN -->
+	  <script src="https://cdn.tailwindcss.com"></script>
+	  
+	  <!-- Dynamic Google Fonts Loading -->
+	  <link rel="preconnect" href="https://fonts.googleapis.com">
+	  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+	  <!-- Tailwind Configuration Setup -->
+	  <script>
+		tailwind.config = {
+		  theme: {
+			extend: {
+			  colors: {
+				brand: {
+				  DEFAULT: '#048986',
+				  50: '#e6f4f3',
+				  100: '#cceae7',
+				  200: '#99d5cf',
+				  300: '#66bfb7',
+				  400: '#33aa9f',
+				  500: '#048986',
+				  600: '#037a78',
+				  700: '#025b5a',
+				  800: '#023d3c',
+				  900: '#011e1e'
+				}
+			  },
+			  fontFamily: {
+				sans: ['DM Sans', 'sans-serif'],
+				mono: ['DM Mono', 'monospace']
+			  }
+			}
+		  }
+		}
+	  </script>
+	  <!-- Design System Component CSS -->
+	  <?!= include('Stylesheet'); ?>
+	</head>
+	<body>
+
+	  <!-- ============ HIGH-PRIORITY SHARED UTILITIES ============ -->
+	  <!-- Defined at the top of <body> to guarantee global availability to all sub-views [2] -->
+	  <script>
+		function escapeHtml(str) {
+		  const div = document.createElement('div');
+		  div.textContent = String(str == null ? '' : str);
+		  return div.innerHTML;
+		}
+
+		function badgeHtml(status, id) {
+		  const map = {
+			'Submitted': 'badge-submitted',
+			'Pending': 'badge-submitted',
+			'In Testing': 'badge-testing',
+			'Verified': 'badge-testing',
+			'Approved': 'badge-approved',
+			'Approved with Conditions': 'badge-approved',
+			'Completed': 'badge-approved',
+			'Passed with Conditions': 'badge-approved',
+			'Returned': 'badge-returned',
+			'Rejected': 'badge-returned',
+			'Cancelled': 'badge-returned',
+			'Return For Revision': 'badge-returned',
+			'Returned for Revision': 'badge-returned',
+			'Resubmitted': 'badge-resubmitted',
+			'Draft': 'badge-resubmitted'
+		  };
+		  const cls = map[status] || 'badge-resubmitted';
+		  const idAttr = id ? ' id="' + id + '"' : '';
+		  return '<span' + idAttr + ' class="badge ' + cls + '">' + escapeHtml(status) + '</span>';
+		}
+
+		function urlSafeB64(b64) {
+		  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+		}
+
+		function toast(message, isError) {
+		  const container = document.getElementById('toast-container');
+		  if (!container) return;
+
+		  const el = document.createElement('div');
+		  el.className = 'toast ' + (isError ? 'toast-error' : 'toast-success');
+		  el.textContent = String(message || '');
+		  container.appendChild(el);
+
+		  window.setTimeout(function () {
+			if (el.parentNode) {
+			  el.parentNode.removeChild(el);
+			}
+		  }, 3200);
+		}
+
+		function extractDriveFileId(value) {
+		  if (!value) return '';
+		  const text = String(value).trim();
+		  if (!text) return '';
+
+		  const match = text.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+		  return match && match[1] ? match[1] : text;
+		}
+
+		function normalizeAttachmentList(value) {
+		  if (Array.isArray(value)) {
+			return value.map(extractDriveFileId).filter(Boolean);
+		  }
+
+		  return String(value || '')
+			.split(/[\n,;|]+/)
+			.map(function (part) {
+			  return extractDriveFileId(part);
+			})
+			.filter(Boolean);
+		}
+
+		function isPreviewableMimeType(mimeType) {
+		  const mime = String(mimeType || '').toLowerCase();
+		  return mime.indexOf('image/') === 0 ||
+			 mime === 'application/pdf' ||
+			 mime.indexOf('text/') === 0 ||
+			 mime === 'application/json' ||
+			 mime === 'application/xml' ||
+			 mime.indexOf('+xml') !== -1;
+		}
+
+		function revokeAttachmentPreviewUrl() {
+		  if (state.attachmentPreviewUrl) {
+			URL.revokeObjectURL(state.attachmentPreviewUrl);
+			state.attachmentPreviewUrl = '';
+		  }
+		}
+
+		function closeAttachmentPreview() {
+		  const viewer = document.getElementById('attachment-viewer');
+		  const frame = document.getElementById('attachment-viewer-frame');
+		  const image = document.getElementById('attachment-viewer-image');
+		  const text = document.getElementById('attachment-viewer-text');
+		  const fallback = document.getElementById('attachment-viewer-fallback');
+
+		  if (viewer) viewer.classList.add('hidden-view');
+		  if (frame) frame.removeAttribute('src');
+		  if (image) image.removeAttribute('src');
+		  if (text) text.textContent = '';
+		  if (fallback) fallback.classList.add('hidden-view');
+
+		  state.attachmentPreviewMime = '';
+		  state.attachmentPreviewName = '';
+		  document.body.style.overflow = '';
+		  revokeAttachmentPreviewUrl();
+		}
+
+		function openAttachmentPreview(fileData, attachmentLabel) {
+		  if (!fileData || !fileData.base64Data) {
+			toast('Attachment data was empty.', true);
+			return;
+		  }
+
+		  revokeAttachmentPreviewUrl();
+
+		  const bytes = atob(fileData.base64Data);
+		  const buffer = new Uint8Array(bytes.length);
+		  for (let i = 0; i < bytes.length; i++) {
+			buffer[i] = bytes.charCodeAt(i);
+		  }
+
+		  const mimeType = String(fileData.mimeType || 'application/octet-stream');
+		  const blob = new Blob([buffer], { type: mimeType });
+		  const url = URL.createObjectURL(blob);
+		  state.attachmentPreviewUrl = url;
+		  state.attachmentPreviewName = fileData.fileName || attachmentLabel || 'Attachment';
+		  state.attachmentPreviewMime = mimeType;
+
+		  const viewer = document.getElementById('attachment-viewer');
+		  const meta = document.getElementById('attachment-viewer-meta');
+		  const downloadLink = document.getElementById('attachment-viewer-download');
+		  const frame = document.getElementById('attachment-viewer-frame');
+		  const image = document.getElementById('attachment-viewer-image');
+		  const text = document.getElementById('attachment-viewer-text');
+		  const fallback = document.getElementById('attachment-viewer-fallback');
+
+		  if (meta) {
+			meta.textContent = state.attachmentPreviewName + ' · ' + mimeType;
+		  }
+
+		  if (downloadLink) {
+			downloadLink.href = url;
+			downloadLink.download = state.attachmentPreviewName;
+        downloadLink.target = '_self';
+        downloadLink.onclick = function (event) {
+          event.preventDefault();
+          if (!state.attachmentPreviewUrl) {
+            toast('Attachment preview is not available for download.', true);
+            return;
+          }
+
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.href = state.attachmentPreviewUrl;
+          downloadAnchor.download = state.attachmentPreviewName;
+          downloadAnchor.style.display = 'none';
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          document.body.removeChild(downloadAnchor);
+        };
+		  if (image) image.classList.add('hidden-view');
+		  if (text) text.classList.add('hidden-view');
+		  if (fallback) fallback.classList.add('hidden-view');
+
+		  if (mimeType.indexOf('image/') === 0) {
+			if (image) {
+			  image.src = url;
+			  image.alt = state.attachmentPreviewName;
+			  image.classList.remove('hidden-view');
+			}
+		  } else if (mimeType === 'application/pdf') {
+			if (frame) {
+			  frame.src = url;
+			  frame.classList.remove('hidden-view');
+			}
+		  } else if (isPreviewableMimeType(mimeType)) {
+			if (text) {
+			  text.textContent = new TextDecoder('utf-8').decode(buffer);
+			  text.classList.remove('hidden-view');
+			}
+		  } else {
+			if (fallback) {
+			  fallback.classList.remove('hidden-view');
+			}
+		  }
+
+		  if (viewer) viewer.classList.remove('hidden-view');
+		  document.body.style.overflow = 'hidden';
+		}
+
+		function renderAttachmentButtons(containerId, attachmentValue, label) {
+		  const container = document.getElementById(containerId);
+		  if (!container) return;
+
+		  container.innerHTML = '';
+		  const fileIds = normalizeAttachmentList(attachmentValue);
+		  if (!fileIds.length) {
+			container.innerHTML = '<span class="text-[12px] text-gray-400">No ' + escapeHtml(label || 'attachment') + ' provided.</span>';
+			return;
+		  }
+
+		  fileIds.forEach(function (fileId, index) {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'w-full text-left px-3 py-2 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50/10 text-[13px] font-semibold text-gray-700 transition-colors mb-2 last:mb-0';
+			button.textContent = (label || 'Attachment') + (fileIds.length > 1 ? ' ' + (index + 1) : '') + ' ↗';
+
+			button.addEventListener('click', function () {
+			  if (!state.token) {
+				toast('Session token is missing. Please refresh and sign in again.', true);
+				return;
+			  }
+
+			  button.disabled = true;
+			  button.textContent = 'Loading...';
+
+			  google.script.run
+				.withSuccessHandler(function (fileData) {
+				  button.disabled = false;
+				  button.textContent = (label || 'Attachment') + (fileIds.length > 1 ? ' ' + (index + 1) : '') + ' ↗';
+				  try {
+					openAttachmentPreview(fileData, label || 'Attachment');
+				  } catch (err) {
+					toast('Could not open ' + (label || 'attachment') + '.', true);
+				  }
+				})
+				.withFailureHandler(function (err) {
+				  button.disabled = false;
+				  button.textContent = (label || 'Attachment') + (fileIds.length > 1 ? ' ' + (index + 1) : '') + ' ↗';
+				  toast((err && err.message) ? err.message : 'Could not load attachment securely.', true);
+				})
+				.getSecureAttachment(state.token, fileId);
+			});
+
+			container.appendChild(button);
+		  });
+		}
+	  </script>
+
+	  <!-- ============ HEADER ============ -->
+	  <?!= include('Header'); ?>
+
+	  <!-- ============ MAIN CONTENT AREA ============ -->
+	  <main class="flex-grow max-w-5xl mx-auto px-6 py-10 w-full">
+
+		<!-- 1. LOADING STATE (Viewport Centered Splash Screen) -->
+		<div id="view-loading" class="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#f8fafc] z-[9999]">
+		  <div class="w-[36px] h-[36px] rounded-full border-[3px] border-gray-200 border-t-brand animate-spin" style="border-top-color: #048986;"></div>
+		  <div class="text-center">
+			<h3 class="text-[14px] font-semibold text-gray-800">Loading...</h3>
+		  </div>
+		</div>
+
+		<!-- 2. AUTH REQUIRED CARD -->
+		<div id="view-auth" class="hidden-view max-w-sm mx-auto mt-20 anim-fade-up">
+		  <div class="cvg-card p-8 text-center flex flex-col items-center">
+			<div class="w-14 h-14 rounded-2xl mb-5 flex items-center justify-center shadow-md bg-gradient-to-tr from-brand to-[#05a3a0]">
+			  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+				<rect x="3" y="11" width="18" height="11" rx="2"/>
+				<path d="M7 11V7a5 5 0 0110 0v4"/>
+			  </svg>
+			</div>
+			<h2 class="text-base font-semibold text-gray-900 mb-2">Authentication Required</h2>
+			<p class="text-sm text-gray-500 mb-6 leading-relaxed">Sign in with your Google Account.</p>
+			<?!= include('GoogleButton'); ?>
+		  </div>
+		</div>
+
+		<!-- 3. ERROR CARD -->
+		<div id="view-error" class="hidden-view max-w-md mx-auto mt-20 anim-fade-up">
+		  <div class="cvg-card p-6 border-red-200">
+			<div class="flex items-start gap-3 p-4 rounded-xl bg-[#fef2f2] border border-[#fecaca] text-[#991b1b]">
+			  <svg class="flex-shrink-0 mt-0.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="10"/>
+				<line x1="12" y1="8" x2="12" y2="12"/>
+				<line x1="12" y1="16" x2="12.01" y2="16"/>
+			  </svg>
+			  <div class="flex-1">
+				<h4 class="text-sm font-semibold mb-1">Something Went Wrong</h4>
+				<span id="error-message" class="text-[13px] leading-relaxed">System Error Details.</span>
+			  </div>
+			</div>
+		  </div>
+		</div>
+
+		<!-- GLOBAL FILTER BAR (Sits above the modular views when in app workspace) [1] -->
+		<div id="global-filter-bar" class="hidden-view flex flex-col sm:flex-row items-center gap-3 mb-6 animate-fade-up select-none">
+		  <!-- Text Search input -->
+		  <div class="relative flex-1 w-full">
+			<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+			  <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="8"></circle>
+				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+			  </svg>
+			</span>
+			<input type="text" id="dashboard-search" placeholder="Search Request ID, Requestor, Summary, or Type..." 
+			  class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-[13px] bg-white focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-50 transition-all">
+		  </div>
+		  
+		  <!-- Status Filter dropdown -->
+		  <div class="w-full sm:w-[220px] flex items-center gap-2">
+			<select id="dashboard-status-filter" 
+			  class="w-full px-3 py-2 border border-gray-200 rounded-xl text-[13px] bg-white focus:outline-none focus:border-brand transition-all font-sans text-gray-600">
+			  <option value="ALL">All Statuses</option>
+			  <option value="Submitted">Submitted</option>
+			  <option value="Resubmitted">Resubmitted</option>
+			  <option value="In Testing">In Testing</option>
+			  <option value="Completed">Completed</option>
+			  <option value="Return For Revision">Returned for Revision</option>
+			  <option value="Cancelled">Cancelled</option>
+			  <option value="Approved">Approved</option>
+			  <option value="Approved with Conditions">Approved with Conditions</option>
+			  <option value="Rejected">Rejected</option>
+			</select>
+
+			<!-- Dynamic Refresh button inside controls layout -->
+			<button id="btn-refresh-queue" class="p-2 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-brand transition-colors bg-white shadow-sm" title="Refresh Queue">
+			  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+			  </svg>
+			</button>
+		  </div>
+		</div>
+
+		<!-- 5. MODULAR ROLE VIEWS PLACEMENT [2] -->
+		<div id="container-requestor" class="hidden-view animate-fade-up">
+		  <?!= include('RequestorView'); ?>
+		</div>
+
+		<div id="container-tester" class="hidden-view animate-fade-up">
+		  <?!= include('TesterView'); ?>
+		</div>
+
+		<div id="container-approver" class="hidden-view animate-fade-up">
+		  <?!= include('ApproverView'); ?>
+		</div>
+
+	  </main>
+
+	  <!-- ============ FOOTER ============ -->
+	  <?!= include('Footer'); ?>
+
+	  <!-- ============ TOAST NOTIFICATIONS ============ -->
+	  <div id="toast-container"></div>
+
+	  <div id="attachment-viewer" class="hidden-view fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm px-4 py-6 flex items-center justify-center">
+		<div class="w-full max-w-5xl h-full max-h-[90vh] cvg-card bg-white/95 overflow-hidden flex flex-col shadow-2xl">
+		  <div class="flex items-start justify-between gap-4 px-5 py-4 border-b border-gray-200">
+			<div class="min-w-0">
+			  <h3 class="text-sm font-semibold text-gray-900">Attachment Preview</h3>
+			  <p id="attachment-viewer-meta" class="text-[12px] text-gray-500 truncate">Preview not loaded.</p>
+			</div>
+			<div class="flex items-center gap-2 shrink-0">
+			  <a id="attachment-viewer-download" href="#" download class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-gray-200 text-[12px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Download</a>
+			  <button id="attachment-viewer-close" type="button" class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-gray-900 text-white text-[12px] font-semibold hover:bg-gray-800 transition-colors">Close</button>
+			</div>
+		  </div>
+		  <div id="attachment-viewer-fallback" class="hidden-view px-5 pt-4 text-[13px] text-gray-600">
+			This file type is not previewable inline. Use the download button to open it locally.
+		  </div>
+		  <div class="flex-1 bg-slate-100 min-h-0">
+			<iframe id="attachment-viewer-frame" class="hidden-view w-full h-full border-0 bg-white"></iframe>
+			<img id="attachment-viewer-image" class="hidden-view w-full h-full object-contain bg-black" alt="Attachment preview">
+			<pre id="attachment-viewer-text" class="hidden-view w-full h-full overflow-auto p-5 text-[12.5px] leading-6 text-gray-700 whitespace-pre-wrap"></pre>
+		  </div>
+		</div>
+	  </div>
+
+	  <!-- ============ CLIENT-SIDE CORE ENGINE ============ -->
+	<script>
+		// ============ STATE MACHINE ============
+		const state = {
+		  token: localStorage.getItem('cvg_token') || '',
+		  currentBase64Id: '',
+		  viewerEmail: '',
+		  viewerRole: '',
+		  attachmentPreviewUrl: '',
+		  attachmentPreviewName: '',
+		  attachmentPreviewMime: '',
+		  currentTab: 'all',
+		  allRows: [],
+		  
+		  // Filter & Sorting State [1]
+		  searchQuery: '',
+		  statusFilter: 'ALL',
+		  sortKey: 'dateSubmitted',
+		  sortAsc: false
+		};
+
+		const EXTERNAL_FORM_BASE = 'https://docs.google.com/forms/d/e/REPLACE_WITH_FORM_ID/viewform?entry.1697204481=';
+
+		// ============ APPLICATION INIT ============
+		window.addEventListener('DOMContentLoaded', function () {
+		  const initialParam = "<?= initialParam ?>";
+		  showView('view-loading'); 
+		  
+		  setupInteractiveFilters(); // Register filters and sort controls
+			  setupAttachmentViewerControls();
+
+		  google.script.run
+			.withSuccessHandler(handleServerResponse)
+			.withFailureHandler(handleServerFailure)
+			.authenticateAndFetch(state.token, initialParam);
+		});
+
+			function setupAttachmentViewerControls() {
+			  const viewer = document.getElementById('attachment-viewer');
+			  const closeButton = document.getElementById('attachment-viewer-close');
+
+			  if (viewer) {
+				viewer.addEventListener('click', function (event) {
+				  if (event.target === viewer) {
+					closeAttachmentPreview();
+				  }
+				});
+			  }
+
+			  if (closeButton) {
+				closeButton.addEventListener('click', closeAttachmentPreview);
+			  }
+
+			  window.addEventListener('keydown', function (event) {
+				if (event.key === 'Escape') {
+				  closeAttachmentPreview();
+				}
+			  });
+			}
+
+		// ============ ROUTER & HANDLERS ============
+		function handleServerResponse(response) {
+		  if (!response || response.status === 'ERROR') {
+			showError(response && response.message ? response.message : 'Unexpected execution error.');
+			return;
+		  }
+
+		  if (response.viewerEmail && response.viewerRole) {
+			state.viewerEmail = response.viewerEmail;
+			state.viewerRole = response.viewerRole;
+			updateHeaderMetrics(response.viewerEmail, response.viewerRole);
+		  }
+
+		  if (response.status === 'SAVE_TOKEN') {
+			state.token = response.token;
+			localStorage.setItem('cvg_token', response.token);
+			cleanAddressBar();
+			renderResolved(response);
+			return;
+		  }
+
+		  if (response.status === 'REQUIRE_AUTH') {
+			cleanAddressBar();
+			showAuthRequired(response.base64requestid, response.appBUrl);
+			return;
+		  }
+
+		  if (response.status === 'RENDER_DATA') {
+			cleanAddressBar();
+			renderResolved(response);
+			return;
+		  }
+		}
+
+		function handleServerFailure(error) {
+		  showError(error && error.message ? error.message : 'Failed to synchronize with server. Please refresh.');
+		}
+
+		function renderResolved(response) {
+		  state.allRows = response.data;
+		  
+		  let containerId = 'container-requestor';
+		  let viewModule = RequestorView;
+		  
+		  if (state.viewerRole === 'Tester') {
+			containerId = 'container-tester';
+			viewModule = TesterView;
+		  } else if (state.viewerRole === 'Approver') {
+			containerId = 'container-approver';
+			viewModule = ApproverView;
+		  }
+		  
+		  showView(containerId);
+		  viewModule.initModule();
+
+		  if (response.isDashboard) {
+			document.getElementById('global-filter-bar').classList.remove('hidden-view');
+			viewModule.renderDashboard(getProcessedRows(), { preFiltered: true });
+		  } else {
+			document.getElementById('global-filter-bar').classList.add('hidden-view');
+			viewModule.renderDetails(response.data);
+		  }
+		}
+
+		function cleanAddressBar() {
+		  try {
+			google.script.history.replace({}, {}, '');
+		  } catch (e) { /* no-op */ }
+		}
+
+		// ============ CENTRALIZED VIEW ROUTER ============
+		function showView(viewId) {
+		  const views = ['view-loading', 'view-auth', 'view-error', 'container-requestor', 'container-tester', 'container-approver'];
+		  views.forEach(function (id) {
+			document.getElementById(id).classList.add('hidden-view');
+		  });
+		  
+		  document.getElementById(viewId).classList.remove('hidden-view');
+		  
+		  const isAppWorkspace = (viewId === 'container-requestor' || viewId === 'container-tester' || viewId === 'container-approver');
+		  const header = document.getElementById('app-header');
+		  const footer = document.getElementById('app-footer');
+		  
+		  if (header) {
+			if (isAppWorkspace) header.classList.remove('hidden-view');
+			else header.classList.add('hidden-view');
+		  }
+		  if (footer) {
+			if (isAppWorkspace) footer.classList.remove('hidden-view');
+			else footer.classList.add('hidden-view');
+		  }
+		  
+		  if (!isAppWorkspace) {
+			document.getElementById('global-filter-bar').classList.add('hidden-view');
+		  }
+		}
+
+		// ============ DYNAMIC HEADER MANAGEMENT ============
+		function updateHeaderMetrics(email, role) {
+		  const emailElement = document.getElementById('user-identity');
+		  const roleElement = document.getElementById('role-indicator');
+
+		  if (emailElement) {
+			emailElement.textContent = email || 'No Active Session';
+		  }
+		  
+		  if (roleElement) {
+			roleElement.textContent = role || 'Requestor';
+			roleElement.className = "text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded transition-all duration-300 border";
+			
+			if (role === 'Approver') {
+			  roleElement.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+			} else if (role === 'Tester') {
+			  roleElement.classList.add('bg-teal-50', 'text-teal-700', 'border-teal-200');
+			} else {
+			  roleElement.classList.add('bg-slate-50', 'text-slate-600', 'border-slate-200');
+			}
+		  }
+		}
+
+		// ============ INTERACTIVE FILTER CONTROL BINDINGS ============
+		function setupInteractiveFilters() {
+		  // 1. Text Search Input Listener
+		  document.getElementById('dashboard-search').addEventListener('input', function (e) {
+			state.searchQuery = e.target.value;
+			handleFilterInput();
+		  });
+		  
+		  // 2. Status Dropdown Select Listener
+		  document.getElementById('dashboard-status-filter').addEventListener('change', function (e) {
+			state.statusFilter = e.target.value;
+			handleFilterInput();
+		  });
+
+		  // 3. Queue Refresh Button Listener
+		  document.getElementById('btn-refresh-queue').addEventListener('click', function() {
+			showView('view-loading');
+			google.script.run
+			  .withSuccessHandler(handleServerResponse)
+			  .withFailureHandler(handleServerFailure)
+			  .authenticateAndFetch(state.token, '');
+		  });
+		}
+
+		/**
+		 * Executes filters and routes the painted rows back to the active module
+		 */
+		function handleFilterInput() {
+		  const processed = getProcessedRows();
+		  if (state.viewerRole === 'Tester') {
+			TesterView.renderDashboard(processed, { preFiltered: true });
+		  } else if (state.viewerRole === 'Approver') {
+			ApproverView.renderDashboard(processed, { preFiltered: true });
+		  } else {
+			RequestorView.renderDashboard(processed, { preFiltered: true });
+		  }
+		}
+
+		/**
+		 * Unified processor executing Search, Status Filtering, and Sort Rules [1]
+		 */
+		function getProcessedRows() {
+		  let rows = [];
+		  if (state.viewerRole === 'Tester') {
+			rows = TesterView.getFilteredDataset(state.allRows);
+		  } else if (state.viewerRole === 'Approver') {
+			rows = ApproverView.getFilteredDataset(state.allRows);
+		  } else {
+			rows = state.allRows; // Requestor path
+		  }
+		  
+		  // 1. Text Search Input Filtering
+		  const query = String(state.searchQuery || '').trim().toLowerCase();
+		  if (query) {
+			rows = rows.filter(function (row) {
+			  return String(row.requestId || '').toLowerCase().includes(query) ||
+					 String(row.requestorName || '').toLowerCase().includes(query) ||
+					 String(row.requestorEmail || '').toLowerCase().includes(query) ||
+					 String(row.summary || '').toLowerCase().includes(query) ||
+					 String(row.requestType || '').toLowerCase().includes(query);
+			});
+		  }
+		  
+		  // 2. Status Selector Filtering
+		  const statusVal = state.statusFilter;
+		  if (statusVal !== 'ALL') {
+			rows = rows.filter(function (row) {
+			  let currentStatus = String(row.status || '').toLowerCase();
+			  let filterStatus = statusVal.toLowerCase();
+			  
+			  if (filterStatus === 'return for revision') {
+				return currentStatus === 'return for revision' || currentStatus === 'returned for revision';
+			  }
+			  return currentStatus === filterStatus;
+			});
+		  }
+		  
+		  // 3. Multi-Column Sorting [1]
+		  const key = state.sortKey;
+		  const asc = state.sortAsc;
+		  
+		  rows.sort(function (a, b) {
+			let valA = a[key] || '';
+			let valB = b[key] || '';
+			
+			if (key === 'dateSubmitted') {
+			  valA = parseChronologicalDate(valA);
+			  valB = parseChronologicalDate(valB);
+			} else {
+			  valA = String(valA).toLowerCase();
+			  valB = String(valB).toLowerCase();
+			}
+			
+			if (valA < valB) return asc ? -1 : 1;
+			if (valA > valB) return asc ? 1 : -1;
+			return 0;
+		  });
+		  
+		  return rows;
+		}
+
+		function parseChronologicalDate(dateStr) {
+		  const timestamp = Date.parse(dateStr);
+		  return isNaN(timestamp) ? 0 : timestamp;
+		}
+
+		// ============ OPTIMIZED QUEUE NAVIGATION ============
+		function openRequest(requestId) {
+		  const cachedRow = state.allRows.find(function(row) {
+			return String(row.requestId) === String(requestId);
+		  });
+
+		  if (cachedRow) {
+			state.currentBase64Id = urlSafeB64(btoa(cachedRow.requestId));
+			const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
+			viewModule.renderDetails(cachedRow);
+		  } else {
+			showView('view-loading');
+			const base64Id = btoa(requestId);
+			google.script.run
+			  .withSuccessHandler(handleServerResponse)
+			  .withFailureHandler(handleServerFailure)
+			  .authenticateAndFetch(state.token, urlSafeB64(base64Id));
+		  }
+		}
+
+		function submitDecision(payload) {
+		  showView('view-loading');
+		  google.script.run
+			.withSuccessHandler(function (updatedRow) {
+			  toast('Decision successfully submitted.');
+			  
+			  const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));
+			  if (idx !== -1) {
+				state.allRows[idx] = updatedRow;
+			  }
+			  
+			  const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
+			  viewModule.renderDetails(updatedRow);
+			})
+			.withFailureHandler(function (err) {
+			  toast('Failed to submit decision: ' + err.message, true);
+			  const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+			  showView(activeContainer);
+			  if (state.viewerRole === 'Tester') {
+				TesterView.renderDashboard(getProcessedRows(), { preFiltered: true });
+			  } else if (state.viewerRole === 'Approver') {
+				ApproverView.renderDashboard(getProcessedRows(), { preFiltered: true });
+			  } else {
+				RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });
+			  }
+			})
+			.submitReviewDecision(state.token, state.currentBase64Id, payload);
+		}
+
+		function handleCancel() {
+		  showView('view-loading');
+		  google.script.run
+			.withSuccessHandler(function (updatedRow) {
+			  toast('Submission successfully cancelled.');
+			  
+			  const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));
+			  if (idx !== -1) {
+				state.allRows[idx] = updatedRow;
+			  }
+			  
+			  showView('container-requestor');
+			  RequestorView.renderDetails(updatedRow);
+			})
+			.withFailureHandler(function (err) {
+			  toast('Could not cancel this request: ' + err.message, true);
+			  showView('container-requestor');
+			  RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });
+			})
+			.cancelRequest(state.token, state.currentBase64Id);
+		}
+
+		function showAuthRequired(base64requestid, appBUrl) {
+		  showView('view-auth');
+		  const btn = document.getElementById('btn-auth-redirect');
+		  btn.onclick = function () {
+			window.top.location.href = appBUrl + '?dXJsX3BhcmFt=' + encodeURIComponent(base64requestid);
+		  };
+		}
+
+		function showError(message) {
+		  showView('view-error');
+		  document.getElementById('error-message').textContent = message;
+		}
+	  </script>
+	</body>
+	</html>

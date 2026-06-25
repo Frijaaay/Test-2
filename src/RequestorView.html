@@ -1,0 +1,232 @@
+<div id="requestor-dashboard-view">
+  <div class="flex items-center justify-between mb-5">
+    <h1 class="section-title">My Technical Submissions</h1>
+    <span id="req-count" class="text-xs font-mono font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
+  </div>
+
+  <div class="cvg-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="text-left text-[11px] text-gray-400 border-b border-gray-100 bg-gray-50/50 uppercase tracking-wider font-semibold">
+            <th class="py-4 px-6">Request ID</th>
+            <th class="py-4 px-6">Request Type</th>
+            <th class="py-4 px-6">Summary of Request</th>
+            <th class="py-4 px-6">Submission Date</th>
+            <th class="py-4 px-6">Status</th>
+            <th class="py-4 px-6"></th>
+          </tr>
+        </thead>
+        <tbody id="req-dashboard-rows" class="divide-y divide-gray-100"></tbody>
+      </table>
+    </div>
+    <div id="req-dashboard-empty" class="hidden-view text-center py-20 text-gray-400">
+      <p class="text-[13.5px]">No requests found. Submissions matching your criteria will appear here.</p>
+    </div>
+  </div>
+</div>
+
+<div id="requestor-details-view" class="hidden-view animate-fade-up">
+  <button id="btn-back-requestor" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    Back to Technical Submissions
+  </button>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <div class="cvg-card p-6 flex flex-col gap-1">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-3">
+        <h2 class="section-title">Request ID: <span id="req-id-header" class="font-mono-cvg text-brand"></span></h2>
+        <span id="req-status-header"></span>
+      </div>
+
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Requestor Name</span>
+        <span id="req-field-name" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Email Address</span>
+        <span id="req-field-email" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Company</span>
+        <span id="req-field-company" class="data-val">—</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <span class="data-label">Contact Information</span>
+        <span id="req-field-contact" class="data-val">—</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-6">
+      <div class="cvg-card p-6 flex flex-col gap-4">
+        <div>
+          <h2 class="section-title mb-4">Workspace Specifications</h2>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Request Type</p>
+              <p id="req-field-type" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Schedule</p>
+              <p id="req-field-schedule" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Firmware/App Version</p>
+              <p id="req-field-firmware" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Device Model</p>
+              <p id="req-field-model" class="text-gray-800 font-medium">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Target Environment</p>
+              <p id="req-field-env" class="text-gray-800 font-medium">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapped Summary field dynamically [Slide 7/Checklist] -->
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Summary of Request</p>
+          <p id="req-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Detailed Description</p>
+          <p id="req-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        </div>
+
+        <!-- Secure Attachment Blocks using Private Proxy Gateway [1, 3] -->
+        <div class="border-t border-gray-100 pt-4 flex flex-col gap-3">
+          <p class="section-title mb-1">Secure Attachment Verification</p>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Test Plan</span>
+            <div id="req-file-test-plan"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Firmware/APK Files</span>
+            <div id="req-file-apk"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Device Specifications</span>
+            <div id="req-file-specs"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Release Notes</span>
+            <div id="req-file-release"></div>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-gray-400 block mb-1">Supporting Documents</span>
+            <div id="req-file-supporting"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action: Requestor Controls (Cancel Submission Only) -->
+      <div id="req-cancel-panel" class="hidden-view cvg-card p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <p class="section-title">Request Control Panel</p>
+        </div>
+        <p class="text-[13px] text-gray-500 mb-4 leading-relaxed">As the author of this submission, you are permitted to cancel this work order while it is still awaiting technical review.</p>
+        <button id="btn-cancel-requestor" class="btn-danger w-full py-2.5 rounded-xl font-semibold">
+          Cancel Submission
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const RequestorView = {
+    initModule() {
+      document.getElementById('header-nav').innerHTML = '';
+      
+      const formLink = document.createElement('a');
+      formLink.href = "https://forms.gle/URachKX9KzcAfGuw5";
+      formLink.target = "_blank";
+      formLink.className = "text-xs font-semibold px-3.5 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-all duration-150 flex items-center gap-0.5";
+      formLink.innerHTML = 'Submit Request For Testing <span class="text-[9px] text-gray-400">↗</span>';
+      document.getElementById('header-nav').appendChild(formLink);
+
+      document.getElementById('btn-back-requestor').onclick = function() {
+        showView('view-loading');
+        google.script.run
+          .withSuccessHandler(handleServerResponse)
+          .withFailureHandler(handleServerFailure)
+          .authenticateAndFetch(state.token, '');
+      };
+    },
+
+    renderDashboard(rows, options) {
+      const filtered = options && options.preFiltered ? rows : this.getFilteredDataset(rows);
+
+      document.getElementById('requestor-dashboard-view').classList.remove('hidden-view');
+      document.getElementById('requestor-details-view').classList.add('hidden-view');
+      
+      const tbody = document.getElementById('req-dashboard-rows');
+      tbody.innerHTML = '';
+      document.getElementById('req-count').textContent = filtered.length + (filtered.length === 1 ? ' request' : ' requests');
+
+      if (!filtered.length) {
+        document.getElementById('req-dashboard-empty').classList.remove('hidden-view');
+        return;
+      }
+      document.getElementById('req-dashboard-empty').classList.add('hidden-view');
+
+      filtered.forEach(function (row) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 last:border-0 hover:bg-slate-50/50 transition-colors';
+        tr.innerHTML =
+          '<td class="py-4 px-6 font-mono font-medium text-gray-700">' + escapeHtml(row.requestId) + '</td>' +
+          '<td class="py-4 px-6 font-medium text-gray-800">' + escapeHtml(row.requestType) + '</td>' +
+          '<td class="py-4 px-6 text-gray-500 max-w-[280px] truncate">' + escapeHtml(row.summary) + '</td>' +
+          '<td class="py-4 px-6 text-gray-500">' + escapeHtml(row.dateSubmitted) + '</td>' +
+          '<td class="py-4 px-6">' + badgeHtml(row.status) + '</td>' +
+          '<td class="py-4 px-6 text-right">' +
+            '<button class="text-xs font-semibold text-brand hover:text-brand-600 hover:underline transition-colors" onclick="openRequest(\'' + escapeHtml(row.requestId) + '\')">Open workspace</button>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    },
+
+    renderDetails(data) {
+      document.getElementById('container-requestor').classList.remove('hidden-view');
+      document.getElementById('requestor-dashboard-view').classList.add('hidden-view');
+      document.getElementById('requestor-details-view').classList.remove('hidden-view');
+
+      document.getElementById('req-id-header').textContent = data.requestId;
+      document.getElementById('req-status-header').outerHTML = badgeHtml(data.status, 'req-status-header');
+
+      document.getElementById('req-field-name').textContent = data.requestorName || '—';
+      document.getElementById('req-field-email').textContent = data.requestorEmail || '—';
+      document.getElementById('req-field-company').textContent = data.company || '—';
+      document.getElementById('req-field-contact').textContent = data.contactInfo || '—';
+
+      document.getElementById('req-field-type').textContent = data.requestType || '—';
+      document.getElementById('req-field-schedule').textContent = data.testSchedule || '—';
+      document.getElementById('req-field-firmware').textContent = data.firmwareVersion || '—';
+      document.getElementById('req-field-model').textContent = data.deviceModel || '—';
+      document.getElementById('req-field-env').textContent = data.targetEnvironment || '—';
+      document.getElementById('req-field-summary').textContent = data.summary || '—';
+      document.getElementById('req-field-description').textContent = data.detailedDescription || '—';
+
+      // Attach Secure Proxy File Download Buttons
+      renderAttachmentButtons('req-file-test-plan', data.testPlanUrl, 'Test Plan');
+      renderAttachmentButtons('req-file-apk', data.firmwareFilesUrl, 'Firmware/APK');
+      renderAttachmentButtons('req-file-specs', data.deviceSpecs, 'Specifications');
+      renderAttachmentButtons('req-file-release', data.releaseNotesUrl, 'Release Notes');
+      renderAttachmentButtons('req-file-supporting', data.supportingDocsUrl, 'Supporting Doc');
+
+      const cancelPanel = document.getElementById('req-cancel-panel');
+      cancelPanel.classList.add('hidden-view');
+
+      if (data.status === 'Submitted' || data.status === 'Resubmitted') {
+        cancelPanel.classList.remove('hidden-view');
+        document.getElementById('btn-cancel-requestor').onclick = function() {
+          if (!confirm("Are you sure you want to cancel this submission? This cannot be undone.")) return;
+          handleCancel();
+        };
+      }
+    }
+  };
+</script>
