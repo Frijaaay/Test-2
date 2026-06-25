@@ -371,12 +371,7 @@ const RequestService = {
       const session = AuthService.getSession(token);
       if (!session) throw new Error("Unauthorized: Session expired.");
 
-      const normalizedFileId = this.extractDriveFileId(fileId);
-      if (!normalizedFileId) {
-        throw new Error('Invalid attachment ID.');
-      }
-
-      const requestId = this.findRequestIdByAttachmentFileId(normalizedFileId);
+      const requestId = this.findRequestIdByAttachmentFileId(fileId);
       if (!requestId) {
         throw new Error('Attachment not found in an accessible request.');
       }
@@ -385,7 +380,7 @@ const RequestService = {
         throw new Error('You do not have access to this attachment.');
       }
 
-      const file = DriveApp.getFileById(normalizedFileId);
+      const file = DriveApp.getFileById(fileId);
       const blob = file.getBlob();
       const base64Data = Utilities.base64Encode(blob.getBytes());
 
@@ -459,7 +454,7 @@ const RequestService = {
         const row = data[i];
         for (let j = 0; j < attachmentHeaders.length; j++) {
           const values = this.normalizeAttachmentValue(SheetRepository.getCell(sheet, row, attachmentHeaders[j]));
-          if (values.indexOf(String(this.extractDriveFileId(fileId))) !== -1) {
+          if (values.indexOf(String(fileId)) !== -1) {
             return String(SheetRepository.getCell(sheet, row, 'Request ID'));
           }
         }

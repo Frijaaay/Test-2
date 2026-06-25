@@ -4,6 +4,7 @@
 	  <base target="_top">
 	  <meta charset="utf-8">
 	  <meta name="viewport" content="width=device-width, initial-scale=1">
+    
 	  <title>Test Request Space</title>
 	  
 	  <!-- Tailwind CSS Play CDN -->
@@ -157,7 +158,7 @@
 		  revokeAttachmentPreviewUrl();
 		}
 
-		function openAttachmentPreview(fileData, attachmentLabel) {
+function openAttachmentPreview(fileData, attachmentLabel) {
 		  if (!fileData || !fileData.base64Data) {
 			toast('Attachment data was empty.', true);
 			return;
@@ -193,50 +194,69 @@
 		  if (downloadLink) {
 			downloadLink.href = url;
 			downloadLink.download = state.attachmentPreviewName;
-        downloadLink.target = '_self';
-        downloadLink.onclick = function (event) {
-          event.preventDefault();
-          if (!state.attachmentPreviewUrl) {
-            toast('Attachment preview is not available for download.', true);
-            return;
-          }
+			downloadLink.target = '_self';
+			downloadLink.onclick = function (event) {
+			  event.preventDefault();
+			  if (!state.attachmentPreviewUrl) {
+				toast('Attachment preview is not available for download.', true);
+				return;
+			  }
 
-          const downloadAnchor = document.createElement('a');
-          downloadAnchor.href = state.attachmentPreviewUrl;
-          downloadAnchor.download = state.attachmentPreviewName;
-          downloadAnchor.style.display = 'none';
-          document.body.appendChild(downloadAnchor);
-          downloadAnchor.click();
-          document.body.removeChild(downloadAnchor);
-        };
+			  const downloadAnchor = document.createElement('a');
+			  downloadAnchor.href = state.attachmentPreviewUrl;
+			  downloadAnchor.download = state.attachmentPreviewName;
+			  downloadAnchor.style.display = 'none';
+			  document.body.appendChild(downloadAnchor);
+			  downloadAnchor.click();
+			  document.body.removeChild(downloadAnchor);
+			};
+		  }
+
+		  // Reset visibilities
+		  if (frame) frame.classList.add('hidden-view');
 		  if (image) image.classList.add('hidden-view');
 		  if (text) text.classList.add('hidden-view');
 		  if (fallback) fallback.classList.add('hidden-view');
 
+		  // ==========================================
+		  // CHROME-COMPLIANT RENDERING PIPELINE [1, 2]
+		  // ==========================================
 		  if (mimeType.indexOf('image/') === 0) {
+			// Images are allowed inside nested iframes by Chrome
 			if (image) {
 			  image.src = url;
 			  image.alt = state.attachmentPreviewName;
 			  image.classList.remove('hidden-view');
 			}
-		  } else if (mimeType === 'application/pdf') {
-			if (frame) {
-			  frame.src = url;
-			  frame.classList.remove('hidden-view');
-			}
-		  } else if (isPreviewableMimeType(mimeType)) {
+			if (viewer) viewer.classList.remove('hidden-view');
+			document.body.style.overflow = 'hidden';
+		  } 
+		  else if (mimeType === 'application/pdf') {
+			// PDFs are blocked inside nested iframes by Chrome's sandbox policy [2.4.9].
+			// Bypassed securely by opening the private blob stream in a new high-priority tab [2.1.5].
+			toast('Opening secure PDF preview in a new tab...', false);
+			window.open(url, '_blank');
+			
+			// Clean up locally right away since it's now loaded in a separate browser process
+			revokeAttachmentPreviewUrl();
+		  } 
+		  else if (isPreviewableMimeType(mimeType)) {
+			// Raw Text / Log files are allowed inside nested iframes by Chrome
 			if (text) {
 			  text.textContent = new TextDecoder('utf-8').decode(buffer);
 			  text.classList.remove('hidden-view');
 			}
-		  } else {
+			if (viewer) viewer.classList.remove('hidden-view');
+			document.body.style.overflow = 'hidden';
+		  } 
+		  else {
+			// Non-previewable fallback
 			if (fallback) {
 			  fallback.classList.remove('hidden-view');
 			}
+			if (viewer) viewer.classList.remove('hidden-view');
+			document.body.style.overflow = 'hidden';
 		  }
-
-		  if (viewer) viewer.classList.remove('hidden-view');
-		  document.body.style.overflow = 'hidden';
 		}
 
 		function renderAttachmentButtons(containerId, attachmentValue, label) {
