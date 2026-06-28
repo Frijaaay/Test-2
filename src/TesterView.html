@@ -1,163 +1,225 @@
 <!-- Tester Workspaces Main Queue Container -->
 <div id="tester-dashboard-view">
   <div class="flex items-center justify-between mb-5">
-    <h1 class="section-title">Assigned Testing Queues</h1>
-    <span id="tester-count" class="text-xs font-mono font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
+    <div class="flex items-center gap-2.5">
+      <span class="icon-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </span>
+      <h1 class="section-title">Assigned Testing Queues</h1>
+    </div>
+    <span id="tester-count" class="text-xs font-mono-cvg font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
   </div>
 
   <div class="cvg-card overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="text-left text-[11px] text-gray-400 border-b border-gray-100 bg-gray-50/50 uppercase tracking-wider font-semibold">
-            <th class="py-4 px-6">Request ID</th>
-            <th class="py-4 px-6">Requestor</th>
-            <th class="py-4 px-6">Submission Date</th>
-            <th class="py-4 px-6">Status</th>
-            <th class="py-4 px-6"></th>
-          </tr>
-        </thead>
-        <tbody id="tester-dashboard-rows" class="divide-y divide-gray-100"></tbody>
-      </table>
-    </div>
-    <div id="tester-dashboard-empty" class="hidden-view text-center py-20 text-gray-400">
-      <p class="text-[13.5px]">No active work requests found inside this view tab.</p>
+    <div id="tester-dashboard-rows"></div>
+    <div id="tester-dashboard-empty" class="hidden-view empty-state">
+      <span class="icon-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H4v4M20 7h5v-4M4 7l8-4 8 4M4 7v10l8 4 8-4V7"/></svg>
+      </span>
+      <h4>No active work requests</h4>
+      <p>Requests matching this queue tab will appear here once they're submitted or assigned.</p>
     </div>
   </div>
 </div>
 
 <!-- Tester Workspace Details View -->
 <div id="tester-details-view" class="hidden-view animate-fade-up">
-  <button id="btn-back-tester" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+  <button id="btn-back-tester" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5 group">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform group-hover:-translate-x-0.5"><path d="M15 18l-6-6 6-6"/></svg>
     Back to Testing Queue
   </button>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-    <div class="cvg-card p-6 flex flex-col gap-1">
-      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-3">
-        <h2 class="section-title">Request ID: <span id="tester-id-header" class="font-mono-cvg text-brand"></span></h2>
-        <span id="tester-status-header"></span>
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+
+    <!-- LEFT: Wide column — Status, Requestor, Request Details, Attachments -->
+    <div class="flex flex-col gap-5">
+
+      <!-- Status + Requestor Identity -->
+      <div class="cvg-card rail anim-fade-up-1" id="tester-rail-wrap">
+        <div class="p-6">
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+            <div>
+              <p class="section-eyebrow mb-1">Request ID</p>
+              <h2 class="font-mono-cvg text-[17px] font-bold text-gray-900" id="tester-id-header"></h2>
+            </div>
+            <span id="tester-status-header"></span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4">
+            <div>
+              <p class="section-eyebrow mb-1">Requestor</p>
+              <p id="tester-field-name" class="data-val">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Email</p>
+              <p id="tester-field-email" class="data-val text-[12.5px] break-all">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Company</p>
+              <p id="tester-field-company" class="data-val">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Contact</p>
+              <p id="tester-field-contact" class="data-val">—</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Requestor Name</span>
-        <span id="tester-field-name" class="data-val">—</span>
+      <!-- Workspace Specifications -->
+      <div class="cvg-card p-6 anim-fade-up-1">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </span>
+          <h2 class="section-title">Workspace Specifications</h2>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm pb-5 border-b border-gray-100">
+          <div>
+            <p class="section-eyebrow mb-1">Request Type</p>
+            <p id="tester-field-type" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Test Schedule</p>
+            <p id="tester-field-schedule" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Firmware/App</p>
+            <p id="tester-field-firmware" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Device Model</p>
+            <p id="tester-field-model" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+        </div>
+        <div class="pt-1">
+          <p class="section-eyebrow mb-1">Target Environment</p>
+          <p id="tester-field-env" class="text-gray-800 font-medium text-[13px]">—</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-gray-100 mt-5 pt-5">
+          <div>
+            <p class="section-eyebrow mb-2">Summary of Request</p>
+            <p id="tester-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-2">Detailed Description</p>
+            <p id="tester-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Email Address</span>
-        <span id="tester-field-email" class="data-val">—</span>
-      </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Company</span>
-        <span id="tester-field-company" class="data-val">—</span>
-      </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Contact Information</span>
-        <span id="tester-field-contact" class="data-val">—</span>
+
+      <!-- Secure Attachments -->
+      <div class="cvg-card p-6 anim-fade-up-2">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+          </span>
+          <h2 class="section-title">Secure Attachment Verification</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Test Plan</span>
+            <div id="tester-file-test-plan" class="space-y-2"></div>
+          </div>
+          <div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Firmware/APK Files</span>
+            <div id="tester-file-apk" class="space-y-2"></div>
+          </div>
+          <div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Device Specifications</span>
+            <div id="tester-file-specs" class="space-y-2"></div>
+          </div>
+          <div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Release Notes</span>
+            <div id="tester-file-release" class="space-y-2"></div>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-2">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Supporting Documents</span>
+            <div id="tester-file-supporting" class="space-y-2"></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Right Panel -->
-    <div class="flex flex-col gap-6">
-      <div class="cvg-card p-6 flex flex-col gap-4">
-        <div>
-          <h2 class="section-title mb-4">Workspace Specifications</h2>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Request Type</p>
-              <p id="tester-field-type" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Schedule</p>
-              <p id="tester-field-schedule" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Firmware/App Version</p>
-              <p id="tester-field-firmware" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Device Model</p>
-              <p id="tester-field-model" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div class="col-span-2">
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Target Environment</p>
-              <p id="tester-field-env" class="text-gray-800 font-medium">—</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="border-t border-gray-100 pt-4">
-          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Summary of Request</p>
-          <p id="tester-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
-        </div>
-
-        <div class="border-t border-gray-100 pt-4">
-          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Detailed Description</p>
-          <p id="tester-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
-        </div>
-
-        <!-- Secure Attachment Blocks using Private Proxy Gateway [1, 3] -->
-        <div class="border-t border-gray-100 pt-4 flex flex-col gap-3">
-          <p class="section-title mb-1">Secure Attachment Verification</p>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Test Plan</span>
-            <div id="tester-file-test-plan"></div>
-          </div>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Firmware/APK Files</span>
-            <div id="tester-file-apk"></div>
-          </div>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Device Specifications</span>
-            <div id="tester-file-specs"></div>
-          </div>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Release Notes</span>
-            <div id="tester-file-release"></div>
-          </div>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Supporting Documents</span>
-            <div id="tester-file-supporting"></div>
-          </div>
-        </div>
-      </div>
+    <!-- RIGHT: Narrow column — Control Panel only -->
+    <div class="flex flex-col gap-5 lg:sticky lg:top-[84px]">
 
       <!-- Action Panel: Stage 1 (Claims and Review Transitions) -->
-      <div id="tester-action-panel" class="hidden-view">
-        
+      <div id="tester-action-panel" class="hidden-view anim-fade-up-3 flex flex-col gap-5">
+
         <!-- Stage 1 Decision Controls -->
-        <div id="tester-stage1-controls" class="hidden-view cvg-card p-6">
-          <div class="flex items-center gap-2 mb-3">
+        <div id="tester-stage1-controls" class="hidden-view cvg-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="icon-chip icon-chip-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </span>
             <p class="section-title">Record Review Decision</p>
           </div>
-          <div class="grid grid-cols-2 gap-3 mb-4">
-            <button id="btn-choice-testing" class="review-choice text-center">In Testing</button>
-            <button id="btn-choice-revision1" class="review-choice text-center">Return For Revision</button>
+          <div class="flex flex-col gap-2.5 mb-4">
+            <button id="btn-choice-testing" class="action-tile">
+              <span class="icon-chip flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </span>
+              <span>
+                <span class="action-tile-title block">In Testing</span>
+                <span class="action-tile-sub block">Begin active testing on this request</span>
+              </span>
+            </button>
+            <button id="btn-choice-revision1" class="action-tile">
+              <span class="icon-chip icon-chip-red flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6"/></svg>
+              </span>
+              <span>
+                <span class="action-tile-title block">Return For Revision</span>
+                <span class="action-tile-sub block">Send back with required changes</span>
+              </span>
+            </button>
           </div>
           <div id="tester-stage1-remarks-wrap" class="hidden-view mb-4">
             <textarea id="tester-stage1-remarks" rows="3" placeholder="Provide clear revision requirements for the requestor..."
               class="cvg-textarea w-full p-3 font-sans"></textarea>
           </div>
           <button id="btn-submit-tester-stage1" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
             Submit Stage 1 Decision
           </button>
         </div>
 
         <!-- Stage 2 Decision Controls -->
-        <div id="tester-stage2-controls" class="hidden-view cvg-card p-6">
-          <div class="flex items-center gap-2 mb-3">
+        <div id="tester-stage2-controls" class="hidden-view cvg-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="icon-chip icon-chip-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </span>
             <p class="section-title">Record Verification Decision</p>
           </div>
-          <div class="grid grid-cols-2 gap-3 mb-4">
-            <button id="btn-choice-revision2" class="review-choice text-center">Return For Revision</button>
-            <button id="btn-choice-completed" class="review-choice text-center">Completed</button>
+          <div class="flex flex-col gap-2.5 mb-4">
+            <button id="btn-choice-revision2" class="action-tile">
+              <span class="icon-chip icon-chip-red flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6"/></svg>
+              </span>
+              <span>
+                <span class="action-tile-title block">Return For Revision</span>
+                <span class="action-tile-sub block">Send back before final sign-off</span>
+              </span>
+            </button>
+            <button id="btn-choice-completed" class="action-tile">
+              <span class="icon-chip icon-chip-green flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+              </span>
+              <span>
+                <span class="action-tile-title block">Completed</span>
+                <span class="action-tile-sub block">Testing finished, ready for approval</span>
+              </span>
+            </button>
           </div>
 
           <div id="tester-stage2-completed-wrap" class="hidden-view space-y-4 mb-4">
             <a id="tester-form-link" href="#" target="_blank"
-               class="block text-center text-[13px] font-semibold py-3 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50/10 text-gray-600 transition-colors">
-              Open Evaluation Form ↗
+               class="btn-ghost w-full py-3 rounded-xl">
+              Open Evaluation Form
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
             </a>
             <!-- Terminology aligned to formal flowchart result options [Slide 4] -->
             <div class="grid grid-cols-3 gap-2">
@@ -173,6 +235,7 @@
           </div>
 
           <button id="btn-submit-tester-stage2" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
             Submit Verification Decision
           </button>
         </div>
@@ -189,6 +252,17 @@
       stage1Choice: null,
       stage2Choice: null,
       outcomeChoice: null
+    },
+
+    railClass(status) {
+      const map = {
+        'Submitted': 'rail-submitted', 'Resubmitted': 'rail-resubmitted',
+        'In Testing': 'rail-testing', 'Completed': 'rail-completed',
+        'Approved': 'rail-approved', 'Approved with Conditions': 'rail-approved',
+        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-returned',
+        'Cancelled': 'rail-cancelled'
+      };
+      return map[status] || 'rail-resubmitted';
     },
 
     initModule() {
@@ -251,8 +325,8 @@
       document.getElementById('tester-dashboard-view').classList.remove('hidden-view');
       document.getElementById('tester-details-view').classList.add('hidden-view');
 
-      const tbody = document.getElementById('tester-dashboard-rows');
-      tbody.innerHTML = '';
+      const wrap = document.getElementById('tester-dashboard-rows');
+      wrap.innerHTML = '';
 
       document.getElementById('tester-count').textContent = filtered.length + (filtered.length === 1 ? ' request' : ' requests');
 
@@ -262,18 +336,24 @@
       }
       document.getElementById('tester-dashboard-empty').classList.add('hidden-view');
 
+      const self = this;
       filtered.forEach(function (row) {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-100 last:border-0 hover:bg-slate-50/50 transition-colors';
-        tr.innerHTML =
-          '<td class="py-4 px-6 font-mono font-medium text-gray-700">' + escapeHtml(row.requestId) + '</td>' +
-          '<td class="py-4 px-6 font-medium text-gray-800">' + escapeHtml(row.requestorName || row.requestorEmail) + '</td>' +
-          '<td class="py-4 px-6 text-gray-500">' + escapeHtml(row.dateSubmitted) + '</td>' +
-          '<td class="py-4 px-6">' + badgeHtml(row.status) + '</td>' +
-          '<td class="py-4 px-6 text-right">' +
-            '<button class="text-xs font-semibold text-brand hover:text-brand-600 hover:underline transition-colors" onclick="openRequest(\'' + escapeHtml(row.requestId) + '\')">Open workspace</button>' +
-          '</td>';
-        tbody.appendChild(tr);
+        const div = document.createElement('div');
+        div.className = 'qrow rail ' + self.railClass(row.status);
+        div.onclick = function() { openRequest(row.requestId); };
+        div.innerHTML =
+          '<div class="min-w-0">' +
+            '<p class="qrow-id mb-1">' + escapeHtml(row.requestId) + '</p>' +
+            '<p class="qrow-title truncate">' + escapeHtml(row.requestorName || row.requestorEmail) + '</p>' +
+          '</div>' +
+          '<div class="qrow-meta hidden sm:flex">' +
+            badgeHtml(row.status) +
+            '<span class="qrow-date">' + escapeHtml(row.dateSubmitted) + '</span>' +
+          '</div>' +
+          '<div class="qrow-arrow">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>' +
+          '</div>';
+        wrap.appendChild(div);
       });
     },
 
@@ -284,6 +364,10 @@
 
       document.getElementById('tester-id-header').textContent = data.requestId;
       document.getElementById('tester-status-header').outerHTML = badgeHtml(data.status, 'tester-status-header');
+
+      const railWrap = document.getElementById('tester-rail-wrap');
+      railWrap.className = railWrap.className.replace(/rail-\S+/g, '').trim();
+      railWrap.classList.add(this.railClass(data.status));
 
       document.getElementById('tester-field-name').textContent = data.requestorName || '—';
       document.getElementById('tester-field-email').textContent = data.requestorEmail || '—';
@@ -339,7 +423,7 @@
       document.getElementById('tester-stage1-remarks').value = '';
       document.getElementById('tester-stage2-remarks').value = '';
 
-      document.querySelectorAll('.review-choice').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.review-choice, .action-tile').forEach(el => el.classList.remove('active', 'active-danger'));
       document.getElementById('btn-submit-tester-stage1').disabled = true;
       document.getElementById('btn-submit-tester-stage2').disabled = true;
     },
@@ -355,7 +439,7 @@
       btnTesting.onclick = () => {
         this.state.stage1Choice = 'In Testing';
         btnTesting.classList.add('active');
-        btnReturn.classList.remove('active');
+        btnReturn.classList.remove('active-danger');
         remarksWrap.classList.add('hidden-view');
         submitBtn.disabled = false;
       };
@@ -363,7 +447,7 @@
       btnReturn.onclick = () => {
         this.state.stage1Choice = 'Return For Revision';
         btnTesting.classList.remove('active');
-        btnReturn.classList.add('active');
+        btnReturn.classList.add('active-danger');
         remarksWrap.classList.remove('hidden-view');
         submitBtn.disabled = false;
       };
@@ -395,7 +479,7 @@
       btnReturn.onclick = () => {
         this.state.stage2Choice = 'Return For Revision';
         this.state.outcomeChoice = null;
-        btnReturn.classList.add('active');
+        btnReturn.classList.add('active-danger');
         btnCompleted.classList.remove('active');
         completedWrap.classList.add('hidden-view');
         remarksWrap.classList.remove('hidden-view');
@@ -406,7 +490,7 @@
 
       btnCompleted.onclick = () => {
         this.state.stage2Choice = 'Completed';
-        btnReturn.classList.remove('active');
+        btnReturn.classList.remove('active-danger');
         btnCompleted.classList.add('active');
         completedWrap.classList.remove('hidden-view');
         remarksWrap.classList.add('hidden-view');

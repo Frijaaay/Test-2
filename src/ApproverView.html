@@ -1,165 +1,183 @@
 <!-- Approver Workspaces Main Queue Container -->
 <div id="approver-dashboard-view">
   <div class="flex items-center justify-between mb-5">
-    <h1 class="section-title">Technical Approvals Queue</h1>
-    <span id="approver-count" class="text-xs font-mono font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
+    <div class="flex items-center gap-2.5">
+      <span class="icon-chip icon-chip-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </span>
+      <h1 class="section-title">Technical Approvals Queue</h1>
+    </div>
+    <span id="approver-count" class="text-xs font-mono-cvg font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
   </div>
 
   <div class="cvg-card overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="text-left text-[11px] text-gray-400 border-b border-gray-100 bg-gray-50/50 uppercase tracking-wider font-semibold">
-            <th class="py-4 px-6">Request ID</th>
-            <th class="py-4 px-6">Requestor</th>
-            <th class="py-4 px-6">Submission Date</th>
-            <th class="py-4 px-6">Status</th>
-            <th class="py-4 px-6"></th>
-          </tr>
-        </thead>
-        <tbody id="approver-dashboard-rows" class="divide-y divide-gray-100"></tbody>
-      </table>
-    </div>
-    <div id="approver-dashboard-empty" class="hidden-view text-center py-20 text-gray-400">
-      <p class="text-[13.5px]">No requests currently pending final sign-off approval.</p>
+    <div id="approver-dashboard-rows"></div>
+    <div id="approver-dashboard-empty" class="hidden-view empty-state">
+      <span class="icon-chip icon-chip-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </span>
+      <h4>Nothing pending sign-off</h4>
+      <p>Requests appear here once a tester marks them Completed and ready for your review.</p>
     </div>
   </div>
 </div>
 
 <!-- Approver Workspace Details View -->
 <div id="approver-details-view" class="hidden-view animate-fade-up">
-  <button id="btn-back-approver" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+  <button id="btn-back-approver" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5 group">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform group-hover:-translate-x-0.5"><path d="M15 18l-6-6 6-6"/></svg>
     Back to Approvals Queue
   </button>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-    <div class="cvg-card p-6 flex flex-col gap-1">
-      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-3">
-        <h2 class="section-title">Request ID: <span id="approver-id-header" class="font-mono-cvg text-brand"></span></h2>
-        <span id="approver-status-header"></span>
-      </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
 
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Requestor Name</span>
-        <span id="approver-field-name" class="data-val">—</span>
-      </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Email Address</span>
-        <span id="approver-field-email" class="data-val">—</span>
-      </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Company</span>
-        <span id="approver-field-company" class="data-val">—</span>
-      </div>
-      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-        <span class="data-label">Contact Information</span>
-        <span id="approver-field-contact" class="data-val">—</span>
+    <!-- LEFT: Sticky Summary Dossier -->
+    <div class="cvg-card cvg-card-sticky rail anim-fade-up-1" id="approver-rail-wrap">
+      <div class="p-6 flex flex-col gap-1">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-1">
+          <div>
+            <p class="section-eyebrow mb-1">Request ID</p>
+            <h2 class="font-mono-cvg text-[15px] font-bold text-gray-900" id="approver-id-header"></h2>
+          </div>
+          <span id="approver-status-header"></span>
+        </div>
+
+        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+          <span class="data-label">Requestor</span>
+          <span id="approver-field-name" class="data-val text-right">—</span>
+        </div>
+        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+          <span class="data-label">Email</span>
+          <span id="approver-field-email" class="data-val text-right text-[12.5px] break-all">—</span>
+        </div>
+        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+          <span class="data-label">Company</span>
+          <span id="approver-field-company" class="data-val text-right">—</span>
+        </div>
+        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+          <span class="data-label">Contact</span>
+          <span id="approver-field-contact" class="data-val text-right">—</span>
+        </div>
       </div>
     </div>
 
-    <!-- Right Panel -->
-    <div class="flex flex-col gap-6">
-      <div class="cvg-card p-6 flex flex-col gap-4">
-        <div>
-          <h2 class="section-title mb-4">Workspace Specifications</h2>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Request Type</p>
-              <p id="approver-field-type" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Schedule</p>
-              <p id="approver-field-schedule" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Device Model</p>
-              <p id="approver-field-device" class="text-gray-800 font-medium">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Target Environment</p>
-              <p id="approver-field-env" class="text-gray-800 font-medium">—</p>
-            </div>
+    <!-- RIGHT: Scrollable Specs / Results / Action -->
+    <div class="flex flex-col gap-5">
+
+      <!-- Workspace Specifications -->
+      <div class="cvg-card p-6 anim-fade-up-1">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </span>
+          <h2 class="section-title">Workspace Specifications</h2>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm">
+          <div>
+            <p class="section-eyebrow mb-1">Request Type</p>
+            <p id="approver-field-type" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Test Schedule</p>
+            <p id="approver-field-schedule" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Device Model</p>
+            <p id="approver-field-device" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-1">Environment</p>
+            <p id="approver-field-env" class="text-gray-800 font-medium text-[13px]">—</p>
           </div>
         </div>
 
-        <div class="border-t border-gray-100 pt-4">
-          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Summary of Request</p>
-          <p id="approver-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        <div class="border-t border-gray-100 mt-5 pt-5">
+          <p class="section-eyebrow mb-2">Summary of Request</p>
+          <p id="approver-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
         </div>
 
-        <div class="border-t border-gray-100 pt-4">
-          <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Detailed Description</p>
-          <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/50 p-4 rounded-xl border border-gray-100">—</p>
+        <div class="border-t border-gray-100 mt-5 pt-5">
+          <p class="section-eyebrow mb-2">Detailed Description</p>
+          <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
         </div>
+      </div>
 
-        <!-- Secure Attachment Blocks using Private Proxy Gateway [1, 3] -->
-        <div class="border-t border-gray-100 pt-4 flex flex-col gap-3">
-          <p class="section-title mb-1">Secure Attachment Verification</p>
+      <!-- Secure Attachments -->
+      <div class="cvg-card p-6 anim-fade-up-2">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+          </span>
+          <h2 class="section-title">Secure Attachment Verification</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Test Plan</span>
-            <div id="approver-file-test-plan"></div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Test Plan</span>
+            <div id="approver-file-test-plan" class="space-y-2"></div>
           </div>
           <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Firmware/APK Files</span>
-            <div id="approver-file-apk"></div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Firmware/APK Files</span>
+            <div id="approver-file-apk" class="space-y-2"></div>
           </div>
           <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Device Specifications</span>
-            <div id="approver-file-specs"></div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Device Specifications</span>
+            <div id="approver-file-specs" class="space-y-2"></div>
           </div>
           <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Release Notes</span>
-            <div id="approver-file-release"></div>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Release Notes</span>
+            <div id="approver-file-release" class="space-y-2"></div>
           </div>
-          <div>
-            <span class="text-xs font-semibold text-gray-400 block mb-1">Supporting Documents</span>
-            <div id="approver-file-supporting"></div>
+          <div class="sm:col-span-2">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Supporting Documents</span>
+            <div id="approver-file-supporting" class="space-y-2"></div>
           </div>
         </div>
       </div>
 
-      <!-- Multi-Sheet Integration: Displays Tester's Findings compiled from Test Results [3] -->
-      <div id="approver-test-results-card" class="hidden-view cvg-card p-6 flex flex-col gap-4 border-l-4 border-l-brand-400">
-        <div class="flex items-center gap-2">
+      <!-- Tester Results & Findings -->
+      <div id="approver-test-results-card" class="hidden-view cvg-card p-6 anim-fade-up-2" style="border-left: 3px solid #048986;">
+        <div class="flex items-center gap-2.5 mb-4">
           <span class="text-[15px]">📋</span>
-          <h2 class="section-title">Tester Results & Findings</h2>
+          <h2 class="section-title">Tester Results &amp; Findings</h2>
         </div>
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Outcome Status</p>
+            <p class="section-eyebrow mb-1">Test Outcome Status</p>
             <span id="approver-test-outcome-badge">—</span>
           </div>
           <div>
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Timestamp</p>
-            <p id="approver-test-timestamp" class="text-gray-800 font-medium">—</p>
+            <p class="section-eyebrow mb-1">Timestamp</p>
+            <p id="approver-test-timestamp" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
           </div>
           <div class="col-span-2">
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Test Findings</p>
+            <p class="section-eyebrow mb-1">Test Findings</p>
             <p id="approver-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
           </div>
           <div class="col-span-2">
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Known Issues</p>
+            <p class="section-eyebrow mb-1">Known Issues</p>
             <p id="approver-test-issues" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
           </div>
           <div class="col-span-2">
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Required Actions</p>
+            <p class="section-eyebrow mb-1">Required Actions</p>
             <p id="approver-test-actions" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
           </div>
           <div class="col-span-2">
-            <p class="text-xs text-gray-400 font-semibold uppercase mb-2">Supporting Screenshots / Files</p>
-            <div id="approver-test-screenshots-container"></div>
+            <p class="section-eyebrow mb-2">Supporting Screenshots / Files</p>
+            <div id="approver-test-screenshots-container" class="space-y-2"></div>
           </div>
         </div>
       </div>
 
       <!-- Action Panel: Approver Sign-Off Flow -->
-      <div id="approver-action-panel" class="hidden-view cvg-card p-6">
-        <div class="flex items-center gap-2 mb-3">
+      <div id="approver-action-panel" class="hidden-view cvg-card p-6 anim-fade-up-3">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip icon-chip-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </span>
           <p class="section-title">Submit Sign-Off Decision</p>
         </div>
         <!-- Decision Options matching Flowchart including Return for Revision [Slide 5] -->
-        <div class="grid grid-cols-4 gap-2 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           <button class="review-choice text-center px-1 text-xs" data-signoff="Approved">Approve</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Passed with Conditions">Approve w/ Cond.</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Rejected">Reject</button>
@@ -170,6 +188,7 @@
             class="cvg-textarea w-full p-3 font-sans"></textarea>
         </div>
         <button id="btn-submit-approver" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
           Submit Sign-Off Decision
         </button>
       </div>
@@ -181,6 +200,17 @@
   const ApproverView = {
     state: {
       signoffChoice: null
+    },
+
+    railClass(status) {
+      const map = {
+        'Submitted': 'rail-submitted', 'Resubmitted': 'rail-resubmitted',
+        'In Testing': 'rail-testing', 'Completed': 'rail-completed',
+        'Approved': 'rail-approved', 'Approved with Conditions': 'rail-approved',
+        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-returned',
+        'Cancelled': 'rail-cancelled'
+      };
+      return map[status] || 'rail-resubmitted';
     },
 
     initModule() {
@@ -235,8 +265,8 @@
       document.getElementById('approver-dashboard-view').classList.remove('hidden-view');
       document.getElementById('approver-details-view').classList.add('hidden-view');
 
-      const tbody = document.getElementById('approver-dashboard-rows');
-      tbody.innerHTML = '';
+      const wrap = document.getElementById('approver-dashboard-rows');
+      wrap.innerHTML = '';
 
       document.getElementById('approver-count').textContent = filtered.length + (filtered.length === 1 ? ' request' : ' requests');
 
@@ -246,18 +276,24 @@
       }
       document.getElementById('approver-dashboard-empty').classList.add('hidden-view');
 
+      const self = this;
       filtered.forEach(function (row) {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-100 last:border-0 hover:bg-slate-50/50 transition-colors';
-        tr.innerHTML =
-          '<td class="py-4 px-6 font-mono font-medium text-gray-700">' + escapeHtml(row.requestId) + '</td>' +
-          '<td class="py-4 px-6 font-medium text-gray-800">' + escapeHtml(row.requestorName || row.requestorEmail) + '</td>' +
-          '<td class="py-4 px-6 text-gray-500">' + escapeHtml(row.dateSubmitted) + '</td>' +
-          '<td class="py-4 px-6">' + badgeHtml(row.status) + '</td>' +
-          '<td class="py-4 px-6 text-right">' +
-            '<button class="text-xs font-semibold text-brand hover:text-brand-600 hover:underline transition-colors" onclick="openRequest(\'' + escapeHtml(row.requestId) + '\')">Open workspace</button>' +
-          '</td>';
-        tbody.appendChild(tr);
+        const div = document.createElement('div');
+        div.className = 'qrow rail ' + self.railClass(row.status);
+        div.onclick = function() { openRequest(row.requestId); };
+        div.innerHTML =
+          '<div class="min-w-0">' +
+            '<p class="qrow-id mb-1">' + escapeHtml(row.requestId) + '</p>' +
+            '<p class="qrow-title truncate">' + escapeHtml(row.requestorName || row.requestorEmail) + '</p>' +
+          '</div>' +
+          '<div class="qrow-meta hidden sm:flex">' +
+            badgeHtml(row.status) +
+            '<span class="qrow-date">' + escapeHtml(row.dateSubmitted) + '</span>' +
+          '</div>' +
+          '<div class="qrow-arrow">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>' +
+          '</div>';
+        wrap.appendChild(div);
       });
     },
 
@@ -268,6 +304,10 @@
 
       document.getElementById('approver-id-header').textContent = data.requestId;
       document.getElementById('approver-status-header').outerHTML = badgeHtml(data.status, 'approver-status-header');
+
+      const railWrap = document.getElementById('approver-rail-wrap');
+      railWrap.className = railWrap.className.replace(/rail-\S+/g, '').trim();
+      railWrap.classList.add(this.railClass(data.status));
 
       document.getElementById('approver-field-name').textContent = data.requestorName || '—';
       document.getElementById('approver-field-email').textContent = data.requestorEmail || '—';

@@ -24,7 +24,7 @@ const RequestService = {
     if (!token) {
       return { 
         status: 'ERROR', 
-        message: 'Access Denied. Your email (' + email + ') is not registered. Please contact your system administrator.' 
+        message: 'Access Denied. Your email (' + email + ') is not authorized. Please contact the system administrator.' 
       };
     }
 
