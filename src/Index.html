@@ -64,14 +64,16 @@
 			'In Testing': 'badge-testing',
 			'Verified': 'badge-testing',
 			'Approved': 'badge-approved',
-			'Approved with Conditions': 'badge-approved',
+			'Approved with Conditions': 'badge-resubmitted',
 			'Completed': 'badge-approved',
-			'Passed with Conditions': 'badge-approved',
+			'Passed': 'badge-approved',
+			'Passed with Conditions': 'badge-resubmitted',
+			'Failed': 'badge-returned',
 			'Returned': 'badge-returned',
 			'Rejected': 'badge-returned',
 			'Cancelled': 'badge-returned',
-			'Return For Revision': 'badge-returned',
-			'Returned for Revision': 'badge-returned',
+			'Return For Revision': 'badge-resubmitted',
+			'Returned for Revision': 'badge-resubmitted',
 			'Resubmitted': 'badge-resubmitted',
 			'Draft': 'badge-resubmitted'
 		  };
@@ -796,6 +798,58 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 			  }
 			})
 			.submitReviewDecision(state.token, state.currentBase64Id, payload);
+		}
+
+		function addAdditionalApprover(email) {
+		  showView('view-loading');
+		  google.script.run
+			.withSuccessHandler(function(updatedRow) {
+			  if (updatedRow && updatedRow.error) {
+				toast('Failed to add approver: ' + updatedRow.error, true);
+			  } else {
+				toast('Successfully added ' + email + ' as an approver.');
+				const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));
+				if (idx !== -1) {
+				  state.allRows[idx] = updatedRow;
+				}
+			  }
+			  showView('container-approver');
+			  ApproverView.renderDetails(updatedRow);
+			})
+			.withFailureHandler(function(err) {
+			  toast('Failed to add approver: ' + err.message, true);
+			  showView('container-approver');
+			})
+			.addAdditionalApprover(state.token, state.currentBase64Id, email);
+		}
+
+		function submitAdditionalDecision(payload) {
+		  showView('view-loading');
+		  google.script.run
+			.withSuccessHandler(function(updatedRow) {
+			  if (updatedRow && updatedRow.error) {
+				toast('Failed to submit decision: ' + updatedRow.error, true);
+			  } else {
+				toast('Your decision has been successfully submitted.');
+				const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));
+				if (idx !== -1) {
+				  state.allRows[idx] = updatedRow;
+				}
+			  }
+			  showView('container-approver');
+			  ApproverView.renderDetails(updatedRow);
+			})
+			.withFailureHandler(function(err) {
+			  toast('Failed to submit decision: ' + err.message, true);
+			  showView('container-approver');
+			  const cachedRow = state.allRows.find(function(row) {
+				return urlSafeB64(btoa(row.requestId)) === state.currentBase64Id;
+			  });
+			  if (cachedRow) {
+				ApproverView.renderDetails(cachedRow);
+			  }
+			})
+			.submitAdditionalApproverDecision(state.token, state.currentBase64Id, payload);
 		}
 
 		function handleCancel() {

@@ -195,38 +195,18 @@
             <p class="section-title">Record Verification Decision</p>
           </div>
           <div class="flex flex-col gap-2.5 mb-4">
-            <button id="btn-choice-revision2" class="action-tile">
-              <span class="icon-chip icon-chip-red flex-shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6"/></svg>
-              </span>
-              <span>
-                <span class="action-tile-title block">Return For Revision</span>
-                <span class="action-tile-sub block">Send back before final sign-off</span>
-              </span>
-            </button>
-            <button id="btn-choice-completed" class="action-tile">
-              <span class="icon-chip icon-chip-green flex-shrink-0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
-              </span>
-              <span>
-                <span class="action-tile-title block">Completed</span>
-                <span class="action-tile-sub block">Testing finished, ready for approval</span>
-              </span>
-            </button>
+            <button class="review-choice text-center px-1 text-xs" data-decision="Passed">Passed</button>
+            <button class="review-choice text-center px-1 text-xs" data-decision="Passed with Conditions">Passed w/ Conditions</button>
+            <button class="review-choice text-center px-1 text-xs" data-decision="Failed">Failed</button>
+            <button class="review-choice text-center px-1 text-xs" data-decision="Return For Revision">Return for Revision</button>
           </div>
 
-          <div id="tester-stage2-completed-wrap" class="hidden-view space-y-4 mb-4">
+          <div id="tester-stage2-form-link-wrap" class="hidden-view space-y-4 mb-4">
             <a id="tester-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=" target="_blank"
                class="btn-ghost w-full py-3 rounded-xl">
               Open Evaluation Form
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
             </a>
-            <!-- Terminology aligned to formal flowchart result options [Slide 4] -->
-            <div class="grid grid-cols-3 gap-2">
-              <button class="review-choice text-center px-1 text-xs" data-outcome="Approved">Passed</button>
-              <button class="review-choice text-center px-1 text-xs" data-outcome="Passed with Conditions">Passed w/ Cond.</button>
-              <button class="review-choice text-center px-1 text-xs" data-outcome="Rejected">Failed</button>
-            </div>
           </div>
 
           <div id="tester-stage2-remarks-wrap" class="hidden-view mb-4">
@@ -250,16 +230,15 @@
     state: {
       activeTab: 'all',
       stage1Choice: null,
-      stage2Choice: null,
-      outcomeChoice: null
+      decisionChoice: null
     },
 
     railClass(status) {
       const map = {
         'Submitted': 'rail-submitted', 'Resubmitted': 'rail-resubmitted',
         'In Testing': 'rail-testing', 'Completed': 'rail-completed',
-        'Approved': 'rail-approved', 'Approved with Conditions': 'rail-approved',
-        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-returned',
+        'Passed': 'rail-approved', 'Approved with Conditions': 'rail-resubmitted',
+        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-resubmitted',
         'Cancelled': 'rail-cancelled'
       };
       return map[status] || 'rail-resubmitted';
@@ -413,13 +392,12 @@
 
     resetTesterDecisionPanel() {
       this.state.stage1Choice = null;
-      this.state.stage2Choice = null;
-      this.state.outcomeChoice = null;
+      this.state.decisionChoice = null;
 
       document.getElementById('tester-stage1-controls').classList.add('hidden-view');
       document.getElementById('tester-stage2-controls').classList.add('hidden-view');
       document.getElementById('tester-stage1-remarks-wrap').classList.add('hidden-view');
-      document.getElementById('tester-stage2-completed-wrap').classList.add('hidden-view');
+      document.getElementById('tester-stage2-form-link-wrap').classList.add('hidden-view');
       document.getElementById('tester-stage2-remarks-wrap').classList.add('hidden-view');
       
       document.getElementById('tester-stage1-remarks').value = '';
@@ -472,40 +450,23 @@
       document.getElementById('tester-stage2-controls').classList.remove('hidden-view');
       document.getElementById('tester-form-link').href = 'https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=' + encodeURIComponent(data.requestId);
 
-      const btnReturn = document.getElementById('btn-choice-revision2');
-      const btnCompleted = document.getElementById('btn-choice-completed');
-      const completedWrap = document.getElementById('tester-stage2-completed-wrap');
+      const formLinkWrap = document.getElementById('tester-stage2-form-link-wrap');
       const remarksWrap = document.getElementById('tester-stage2-remarks-wrap');
       const submitBtn = document.getElementById('btn-submit-tester-stage2');
+      const decisionBtns = document.querySelectorAll('#tester-stage2-controls [data-decision]');
 
-      btnReturn.onclick = () => {
-        this.state.stage2Choice = 'Return For Revision';
-        this.state.outcomeChoice = null;
-        btnReturn.classList.add('active-danger');
-        btnCompleted.classList.remove('active');
-        completedWrap.classList.add('hidden-view');
-        remarksWrap.classList.remove('hidden-view');
-        
-        completedWrap.querySelectorAll('.review-choice').forEach(el => el.classList.remove('active'));
-        submitBtn.disabled = false;
-      };
-
-      btnCompleted.onclick = () => {
-        this.state.stage2Choice = 'Completed';
-        btnReturn.classList.remove('active-danger');
-        btnCompleted.classList.add('active');
-        completedWrap.classList.remove('hidden-view');
-        remarksWrap.classList.add('hidden-view');
-        submitBtn.disabled = true; 
-      };
-
-      completedWrap.querySelectorAll('[data-outcome]').forEach(btn => {
+      decisionBtns.forEach(btn => {
         btn.onclick = () => {
-          completedWrap.querySelectorAll('[data-outcome]').forEach(el => el.classList.remove('active'));
+          decisionBtns.forEach(el => el.classList.remove('active'));
           btn.classList.add('active');
-          this.state.outcomeChoice = btn.getAttribute('data-outcome');
+          this.state.decisionChoice = btn.getAttribute('data-decision');
           
-          const needsRemarks = (this.state.outcomeChoice === 'Rejected' || this.state.outcomeChoice === 'Passed with Conditions');
+          const isCompletion = this.state.decisionChoice !== 'Return For Revision';
+          const needsRemarks = this.state.decisionChoice === 'Passed with Conditions' || 
+                               this.state.decisionChoice === 'Failed' ||
+                               this.state.decisionChoice === 'Return For Revision';
+
+          formLinkWrap.classList.toggle('hidden-view', !isCompletion);
           remarksWrap.classList.toggle('hidden-view', !needsRemarks);
           submitBtn.disabled = false;
         };
@@ -513,18 +474,20 @@
 
       submitBtn.onclick = () => {
         const remarksVal = document.getElementById('tester-stage2-remarks').value.trim();
+        const choice = this.state.decisionChoice;
+
+        const needsRemarks = choice === 'Passed with Conditions' || choice === 'Failed' || choice === 'Return For Revision';
+        if (needsRemarks && !remarksVal) {
+          toast('Remarks are required for this decision.', true);
+          return;
+        }
         
-        if (this.state.stage2Choice === 'Return For Revision') {
-          if (!remarksVal) { toast('Remarks are required to return this request.', true); return; }
+        if (choice === 'Return For Revision') {
           submitDecision({ newStatus: 'Return For Revision', remarks: remarksVal });
         } else {
-          if ((this.state.outcomeChoice === 'Rejected' || this.state.outcomeChoice === 'Passed with Conditions') && !remarksVal) {
-            toast('Remarks are required for conditional or failed outcomes.', true);
-            return;
-          }
           submitDecision({
             newStatus: 'Completed',
-            outcome: this.state.outcomeChoice,
+            outcome: choice,
             remarks: remarksVal
           });
         }

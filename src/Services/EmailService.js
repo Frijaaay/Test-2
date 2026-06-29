@@ -37,7 +37,7 @@ const EmailService = {
   },
 
   sendReviewedProceedingEmail(recipient, details) {
-    const subject = "Request In Testing - " + details.request_id;
+    const subject = "Request is in Testing - " + details.request_id;
     const params = {
       subject: subject,
       title: "Your Testing Request is Now in Progress",
@@ -102,7 +102,7 @@ const EmailService = {
   },
 
   sendTestCompletedAlertToApprover(approverEmail, details) {
-    const subject = "PENDING SIGN-OFF: Test Results Encoded - " + details.request_id;
+    const subject = `APPROVAL REQUIRED: Test Results for request #+ ${details.request_id}`;
     const appUrl = Config.getAppUrl();
     const params = {
       subject: subject,
@@ -126,17 +126,17 @@ const EmailService = {
   },
 
   sendFinalClosureNotification(recipientEmail, details) {
-    const subject = `FW Test Request Final Status Notification - ${details.request_id} [${details.final_status}]`;
+    const subject = `Test Request Final Status Notification - ${details.request_id} [${details.final_status}]`;
     const params = {
       subject: subject,
-      title: `Technical Validation Outcome: ${details.final_status}`,
+      title: `Request for testing outcome: ${details.final_status}`,
       name: details.requestor_name,
-      message_body: `Your request for technical testing has been reviewed and finalized. The final decision status is <strong>${details.final_status}</strong>.`,
+      message_body: 'Your request for testing has been reviewed and finalized.',
       request_id: details.request_id,
       type: details.type,
       summary: details.summary,
       date_submitted: details.date_submitted,
-      reason: `Approver Remarks: "${details.remarks}"`,
+      reason: `Approver: "${details.remarks}"`,
       cc: details.cc_recipients
     };
     return this.sendMail(recipientEmail, params);

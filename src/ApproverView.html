@@ -9,7 +9,7 @@
     </div>
     <span id="approver-count" class="text-xs font-mono-cvg font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
   </div>
-
+ 
   <div class="cvg-card overflow-hidden">
     <div id="approver-dashboard-rows"></div>
     <div id="approver-dashboard-empty" class="hidden-view empty-state">
@@ -21,49 +21,51 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Approver Workspace Details View -->
 <div id="approver-details-view" class="hidden-view animate-fade-up">
   <button id="btn-back-approver" class="text-[13px] font-semibold text-gray-500 hover:text-brand transition-all duration-200 mb-6 flex items-center gap-1.5 group">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform group-hover:-translate-x-0.5"><path d="M15 18l-6-6 6-6"/></svg>
     Back to Approvals Queue
   </button>
-
-  <div class="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
-
-    <!-- LEFT: Sticky Summary Dossier -->
-    <div class="cvg-card cvg-card-sticky rail anim-fade-up-1" id="approver-rail-wrap">
-      <div class="p-6 flex flex-col gap-1">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-1">
-          <div>
-            <p class="section-eyebrow mb-1">Request ID</p>
-            <h2 class="font-mono-cvg text-[15px] font-bold text-gray-900" id="approver-id-header"></h2>
+ 
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+ 
+    <!-- LEFT: Wide column — Status, Requestor, Request Details, Attachments, Results -->
+    <div class="flex flex-col gap-5">
+ 
+      <!-- Status + Requestor Identity -->
+      <div class="cvg-card rail anim-fade-up-1" id="approver-rail-wrap">
+        <div class="p-6">
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+            <div>
+              <p class="section-eyebrow mb-1">Request ID</p>
+              <h2 class="font-mono-cvg text-[17px] font-bold text-gray-900" id="approver-id-header"></h2>
+            </div>
+            <span id="approver-status-header"></span>
           </div>
-          <span id="approver-status-header"></span>
-        </div>
-
-        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-          <span class="data-label">Requestor</span>
-          <span id="approver-field-name" class="data-val text-right">—</span>
-        </div>
-        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-          <span class="data-label">Email</span>
-          <span id="approver-field-email" class="data-val text-right text-[12.5px] break-all">—</span>
-        </div>
-        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-          <span class="data-label">Company</span>
-          <span id="approver-field-company" class="data-val text-right">—</span>
-        </div>
-        <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-          <span class="data-label">Contact</span>
-          <span id="approver-field-contact" class="data-val text-right">—</span>
+ 
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4">
+            <div>
+              <p class="section-eyebrow mb-1">Requestor</p>
+              <p id="approver-field-name" class="data-val">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Email</p>
+              <p id="approver-field-email" class="data-val text-[12.5px] break-all">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Company</p>
+              <p id="approver-field-company" class="data-val">—</p>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Contact</p>
+              <p id="approver-field-contact" class="data-val">—</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- RIGHT: Scrollable Specs / Results / Action -->
-    <div class="flex flex-col gap-5">
-
+ 
       <!-- Workspace Specifications -->
       <div class="cvg-card p-6 anim-fade-up-1">
         <div class="flex items-center gap-2.5 mb-4">
@@ -72,7 +74,7 @@
           </span>
           <h2 class="section-title">Workspace Specifications</h2>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm pb-5 border-b border-gray-100">
           <div>
             <p class="section-eyebrow mb-1">Request Type</p>
             <p id="approver-field-type" class="text-gray-800 font-medium text-[13px]">—</p>
@@ -90,18 +92,19 @@
             <p id="approver-field-env" class="text-gray-800 font-medium text-[13px]">—</p>
           </div>
         </div>
-
-        <div class="border-t border-gray-100 mt-5 pt-5">
-          <p class="section-eyebrow mb-2">Summary of Request</p>
-          <p id="approver-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
-        </div>
-
-        <div class="border-t border-gray-100 mt-5 pt-5">
-          <p class="section-eyebrow mb-2">Detailed Description</p>
-          <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+ 
+        <div class="grid grid-cols-1 gap-5 mt-5">
+          <div>
+            <p class="section-eyebrow mb-2">Summary of Request</p>
+            <p id="approver-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-2">Detailed Description</p>
+            <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+          </div>
         </div>
       </div>
-
+ 
       <!-- Secure Attachments -->
       <div class="cvg-card p-6 anim-fade-up-2">
         <div class="flex items-center gap-2.5 mb-4">
@@ -110,7 +113,7 @@
           </span>
           <h2 class="section-title">Secure Attachment Verification</h2>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <div>
             <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Test Plan</span>
             <div id="approver-file-test-plan" class="space-y-2"></div>
@@ -127,49 +130,70 @@
             <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Release Notes</span>
             <div id="approver-file-release" class="space-y-2"></div>
           </div>
-          <div class="sm:col-span-2">
+          <div class="sm:col-span-2 lg:col-span-2">
             <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Supporting Documents</span>
             <div id="approver-file-supporting" class="space-y-2"></div>
           </div>
         </div>
       </div>
-
+ 
       <!-- Tester Results & Findings -->
-      <div id="approver-test-results-card" class="hidden-view cvg-card p-6 anim-fade-up-2" style="border-left: 3px solid #048986;">
-        <div class="flex items-center gap-2.5 mb-4">
-          <span class="text-[15px]">📋</span>
-          <h2 class="section-title">Tester Results &amp; Findings</h2>
+      <div id="approver-test-results-card" class="cvg-card p-6 anim-fade-up-2" style="border-left: 3px solid #048986;">
+        <div id="approver-results-content" class="hidden-view">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="text-[15px]">📋</span>
+            <h2 class="section-title">Tester Results &amp; Findings</h2>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="section-eyebrow mb-1">Test Result</p>
+              <span id="approver-test-outcome-badge">—</span>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Timestamp</p>
+              <p id="approver-test-timestamp" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Test Findings</p>
+              <p id="approver-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Known Issues</p>
+              <p id="approver-test-issues" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Recommendation</p>
+              <p id="approver-test-recommendation" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Required Actions</p>
+              <p id="approver-test-actions" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-2">Supporting Screenshots / Files</p>
+              <div id="approver-test-screenshots-container" class="space-y-2"></div>
+            </div>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p class="section-eyebrow mb-1">Test Outcome Status</p>
-            <span id="approver-test-outcome-badge">—</span>
+        <div id="approver-no-results-content" class="hidden-view">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="text-[15px]">📋</span>
+            <h2 class="section-title">Tester Results &amp; Findings</h2>
           </div>
-          <div>
-            <p class="section-eyebrow mb-1">Timestamp</p>
-            <p id="approver-test-timestamp" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
-          </div>
-          <div class="col-span-2">
-            <p class="section-eyebrow mb-1">Test Findings</p>
-            <p id="approver-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
-          </div>
-          <div class="col-span-2">
-            <p class="section-eyebrow mb-1">Known Issues</p>
-            <p id="approver-test-issues" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
-          </div>
-          <div class="col-span-2">
-            <p class="section-eyebrow mb-1">Required Actions</p>
-            <p id="approver-test-actions" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
-          </div>
-          <div class="col-span-2">
-            <p class="section-eyebrow mb-2">Supporting Screenshots / Files</p>
-            <div id="approver-test-screenshots-container" class="space-y-2"></div>
+          <div class="empty-state !py-8 !px-4 text-center">
+            <span class="icon-chip icon-chip-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg></span>
+            <h4 class="mt-3">No Test Results Submitted</h4>
+            <p>The tester has not yet submitted the detailed evaluation form. Please follow up with the tester before proceeding.</p>
           </div>
         </div>
       </div>
-
+    </div>
+ 
+    <!-- RIGHT: Narrow column — Control Panel only -->
+    <div class="flex flex-col gap-5 lg:sticky lg:top-[84px]">
+ 
       <!-- Action Panel: Approver Sign-Off Flow -->
-      <div id="approver-action-panel" class="hidden-view cvg-card p-6 anim-fade-up-3">
+      <div id="approver-action-panel" class="hidden-view cvg-card p-5 anim-fade-up-3">
         <div class="flex items-center gap-2.5 mb-4">
           <span class="icon-chip icon-chip-green">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -177,7 +201,7 @@
           <p class="section-title">Submit Sign-Off Decision</p>
         </div>
         <!-- Decision Options matching Flowchart including Return for Revision [Slide 5] -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        <div class="flex flex-col gap-2.5 mb-4">
           <button class="review-choice text-center px-1 text-xs" data-signoff="Approved">Approve</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Passed with Conditions">Approve w/ Cond.</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Rejected">Reject</button>
@@ -206,8 +230,8 @@
       const map = {
         'Submitted': 'rail-submitted', 'Resubmitted': 'rail-resubmitted',
         'In Testing': 'rail-testing', 'Completed': 'rail-completed',
-        'Approved': 'rail-approved', 'Approved with Conditions': 'rail-approved',
-        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-returned',
+        'Approved': 'rail-approved', 'Approved with Conditions': 'rail-resubmitted',
+        'Rejected': 'rail-rejected', 'Return For Revision': 'rail-resubmitted',
         'Cancelled': 'rail-cancelled'
       };
       return map[status] || 'rail-resubmitted';
@@ -332,17 +356,27 @@
 
       // Multi-Sheet Results Loader Block [3]
       const resultsCard = document.getElementById('approver-test-results-card');
+      const resultsContent = document.getElementById('approver-results-content');
+      const noResultsContent = document.getElementById('approver-no-results-content');
       resultsCard.classList.add('hidden-view');
       
-      if (data.testResults) {
+      if (data.status === 'Completed' || data.testResults) {
         resultsCard.classList.remove('hidden-view');
-        document.getElementById('approver-test-outcome-badge').outerHTML = badgeHtml(data.testResultStatus || 'Completed', 'approver-test-outcome-badge');
-        document.getElementById('approver-test-timestamp').textContent = data.testResults.timestamp || '—';
-        document.getElementById('approver-test-findings').textContent = data.testResults.testFindings || '—';
-        document.getElementById('approver-test-issues').textContent = data.testResults.knownIssues || '—';
-        document.getElementById('approver-test-actions').textContent = data.testResults.requiredActions || '—';
-        
-        renderAttachmentButtons('approver-test-screenshots-container', data.testResults.supportingFiles, 'Screenshot');
+        if (data.testResults) {
+          resultsContent.classList.remove('hidden-view');
+          noResultsContent.classList.add('hidden-view');
+          document.getElementById('approver-test-outcome-badge').outerHTML = badgeHtml(data.testResultStatus || 'Completed', 'approver-test-outcome-badge');
+          document.getElementById('approver-test-timestamp').textContent = data.testResults.timestamp || '—';
+          document.getElementById('approver-test-findings').textContent = data.testResults.testFindings || '—';
+          document.getElementById('approver-test-issues').textContent = data.testResults.knownIssues || '—';
+          document.getElementById('approver-test-recommendation').textContent = data.testResults.recommendation || '—';
+          document.getElementById('approver-test-actions').textContent = data.testResults.requiredActions || '—';
+          renderAttachmentButtons('approver-test-screenshots-container', data.testResults.supportingFiles, 'Screenshot');
+        } else {
+          // Status is 'Completed' but no results form submitted
+          resultsContent.classList.add('hidden-view');
+          noResultsContent.classList.remove('hidden-view');
+        }
       }
 
       this.resetApproverDecisionPanel();
@@ -350,7 +384,8 @@
       const actionPanel = document.getElementById('approver-action-panel');
       actionPanel.classList.add('hidden-view');
 
-      if (data.status === 'Completed') {
+      // Only show controls if status is Completed AND test results are available
+      if (data.status === 'Completed' && data.testResults) {
         actionPanel.classList.remove('hidden-view');
         this.initApproverControls(data);
       }

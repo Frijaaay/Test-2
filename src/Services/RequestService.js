@@ -95,14 +95,21 @@ const RequestService = {
       const data = sheet.getDataRange().getValues();
       const rows = [];
 
+      let testResultsMap = {};
+      if (role === 'Tester' || role === 'Approver') {
+        testResultsMap = this.getAllTestResults();
+      }
+
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
         const requestorEmail = String(SheetRepository.getCell(sheet, row, 'Email Address'));
 
-        if (role === 'Tester' || role === 'Approver') {
-          rows.push(this.formatRow(sheet, row));
-        } else if (requestorEmail.toLowerCase() === email.toLowerCase()) {
-          rows.push(this.formatRow(sheet, row));
+        if (role === 'Tester' || role === 'Approver' || requestorEmail.toLowerCase() === email.toLowerCase()) {
+          const formattedRow = this.formatRow(sheet, row);
+          if (testResultsMap[formattedRow.requestId]) {
+            formattedRow.testResults = testResultsMap[formattedRow.requestId];
+          }
+          rows.push(formattedRow);
         }
       }
       return rows;
@@ -139,6 +146,36 @@ const RequestService = {
     } catch (err) {
       console.error('getRequestDetails error: ' + err.stack);
       return { error: 'Something went wrong loading this request.' };
+    }
+  },
+
+  getAllTestResults() {
+    try {
+      const sheet = SheetRepository.getSheetByGid(Config.RESULT_SHEET);
+      const data = sheet.getDataRange().getValues();
+      const reqColIdx = SheetRepository.colIndex(sheet, 'Request ID');
+      const resultsMap = {};
+      
+      for (let i = 1; i < data.length; i++) {
+        const resultRow = data[i];
+        const requestId = String(resultRow[reqColIdx]).trim();
+        if (requestId) {
+          resultsMap[requestId] = {
+            timestamp: this.formatDateCell(resultRow[SheetRepository.colIndex(sheet, 'Timestamp')]),
+            requestId: requestId,
+            testFindings: String(resultRow[SheetRepository.colIndex(sheet, 'Test Findings')]),
+            knownIssues: String(resultRow[SheetRepository.colIndex(sheet, 'Known Issues')]),
+            recommendation: String(resultRow[SheetRepository.colIndex(sheet, 'Recommendation')]),
+            requiredActions: String(resultRow[SheetRepository.colIndex(sheet, 'Required Actions')]),
+            supportingFiles: String(resultRow[SheetRepository.colIndex(sheet, 'Supporting Screenshots/Files')]),
+            ccRecipients: String(resultRow[SheetRepository.colIndex(sheet, 'Additional CC Recipients')])
+          };
+        }
+      }
+      return resultsMap;
+    } catch (err) {
+      console.error('getAllTestResults error: ' + err.stack);
+      return {};
     }
   },
 
