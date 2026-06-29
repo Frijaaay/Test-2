@@ -541,7 +541,7 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		}
 
 		function renderResolved(response) {
-		  state.allRows = response.data;
+		  state.allRows = Array.isArray(response.data) ? response.data : [response.data];
 		  
 		  let containerId = 'container-requestor';
 		  let viewModule = RequestorView;
@@ -562,6 +562,7 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 			viewModule.renderDashboard(getProcessedRows(), { preFiltered: true });
 		  } else {
 			document.getElementById('global-filter-bar').classList.add('hidden-view');
+			state.currentBase64Id = urlSafeB64(btoa(response.data.requestId));
 			viewModule.renderDetails(response.data);
 		  }
 		}
@@ -756,6 +757,20 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  showView('view-loading');
 		  google.script.run
 			.withSuccessHandler(function (updatedRow) {
+			  if (updatedRow && updatedRow.error) {
+				toast('Failed to submit decision: ' + updatedRow.error, true);
+				const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+				showView(activeContainer);
+				if (state.viewerRole === 'Tester') {
+				  TesterView.renderDashboard(getProcessedRows(), { preFiltered: true });
+				} else if (state.viewerRole === 'Approver') {
+				  ApproverView.renderDashboard(getProcessedRows(), { preFiltered: true });
+				} else {
+				  RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });
+				}
+				return;
+  			  }
+
 			  toast('Decision successfully submitted.');
 			  
 			  const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));
@@ -764,6 +779,8 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 			  }
 			  
 			  const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
+			  const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+			  showView(activeContainer);
 			  viewModule.renderDetails(updatedRow);
 			})
 			.withFailureHandler(function (err) {
@@ -785,6 +802,12 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  showView('view-loading');
 		  google.script.run
 			.withSuccessHandler(function (updatedRow) {
+			  if (updatedRow && updatedRow.error) {
+				toast('Could not cancel this request: ' + updatedRow.error, true);
+				showView('container-requestor');
+				RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });
+				return;
+			  }
 			  toast('Submission successfully cancelled.');
 			  
 			  const idx = state.allRows.findIndex(row => String(row.requestId) === String(updatedRow.requestId));

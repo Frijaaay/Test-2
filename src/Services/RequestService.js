@@ -476,7 +476,7 @@ const RequestService = {
       requestorName: SheetRepository.getCell(sheet, row, 'Requestor Name'),
       company: SheetRepository.getCell(sheet, row, 'Company'),
       contactInfo: SheetRepository.getCell(sheet, row, 'Contact Information'),
-      testSchedule: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Test Schedule')),
+      testSchedule: this.formatDateTimeCell(SheetRepository.getCell(sheet, row, 'Test Schedule')),
       requestType: SheetRepository.getCell(sheet, row, 'Request Type'),
       summary: SheetRepository.getCell(sheet, row, 'Summary of Request'),
       detailedDescription: SheetRepository.getCell(sheet, row, 'Detailed Description'),
@@ -489,7 +489,6 @@ const RequestService = {
       releaseNotesUrl: SheetRepository.getCell(sheet, row, 'Release Notes'),
       supportingDocsUrl: SheetRepository.getCell(sheet, row, 'Supporting Documents'),
       status: SheetRepository.getCell(sheet, row, 'Status'),
-      statusLogs: SheetRepository.getCell(sheet, row, 'Status Logs'),
       tester: SheetRepository.getCell(sheet, row, 'Tester'),
       testingStarted: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Testing Started Date')),
       testingCompleted: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Testing Completed Date')),
@@ -506,6 +505,13 @@ const RequestService = {
   formatDateCell(val) {
     if (val instanceof Date) {
       return Utilities.formatDate(val, Session.getScriptTimeZone(), 'MMM d, yyyy');
+    }
+    return val ? String(val) : '';
+  },
+
+  formatDateTimeCell(val) {
+    if (val instanceof Date) {
+      return Utilities.formatDate(val, Session.getScriptTimeZone(), 'MMMM d, yyyy h:mm a');
     }
     return val ? String(val) : '';
   }

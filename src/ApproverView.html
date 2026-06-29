@@ -235,9 +235,11 @@
         
         button.addEventListener('click', function () {
           state.currentTab = tab.value;
-          showView('container-approver');
-          ApproverView.initModule();
-          ApproverView.renderDashboard(state.allRows);
+          showView('view-loading');
+          google.script.run
+            .withSuccessHandler(handleServerResponse)
+            .withFailureHandler(handleServerFailure)
+            .authenticateAndFetch(state.token, '');
         });
         
         container.appendChild(button);

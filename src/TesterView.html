@@ -216,7 +216,7 @@
           </div>
 
           <div id="tester-stage2-completed-wrap" class="hidden-view space-y-4 mb-4">
-            <a id="tester-form-link" href="#" target="_blank"
+            <a id="tester-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=" target="_blank"
                class="btn-ghost w-full py-3 rounded-xl">
               Open Evaluation Form
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
@@ -287,9 +287,11 @@
         
         button.addEventListener('click', function () {
           state.currentTab = tab.value;
-          showView('container-tester');
-          TesterView.initModule();
-          TesterView.renderDashboard(state.allRows);
+          showView('view-loading');
+          google.script.run
+            .withSuccessHandler(handleServerResponse)
+            .withFailureHandler(handleServerFailure)
+            .authenticateAndFetch(state.token, '');
         });
         
         container.appendChild(button);
@@ -468,7 +470,7 @@
 
     initTesterStage2(data) {
       document.getElementById('tester-stage2-controls').classList.remove('hidden-view');
-      document.getElementById('tester-form-link').href = EXTERNAL_FORM_BASE + encodeURIComponent(data.requestId);
+      document.getElementById('tester-form-link').href = 'https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=' + encodeURIComponent(data.requestId);
 
       const btnReturn = document.getElementById('btn-choice-revision2');
       const btnCompleted = document.getElementById('btn-choice-completed');
