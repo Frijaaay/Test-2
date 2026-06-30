@@ -166,6 +166,10 @@
           <p class="section-title">Control Panel</p>
         </div>
         <p class="text-[13px] text-gray-500 mb-4 leading-relaxed">This request needs revision. Please use the link below to edit your submission.</p>
+        <div id="requestor-revision-remarks-wrap" class="hidden-view mb-4">
+          <p class="section-eyebrow mb-1">Revision Remarks</p>
+          <p id="requestor-revision-remarks" class="text-gray-700 whitespace-pre-wrap bg-red-50 p-3 rounded-lg border border-red-100 text-[12.5px]"></p>
+        </div>
         <a id="btn-edit-requestor" target="_blank" class="btn-primary w-full py-2.5 rounded-xl font-semibold">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Edit Request Form
@@ -283,6 +287,9 @@
 
       cancelPanel.classList.add('hidden-view');
       editPanel.classList.add('hidden-view');
+      
+      const revisionRemarksWrap = document.getElementById('requestor-revision-remarks-wrap');
+      if (revisionRemarksWrap) revisionRemarksWrap.classList.add('hidden-view');
 
       if (data.status === 'Submitted' || data.status === 'Resubmitted') {
         cancelPanel.classList.remove('hidden-view');
@@ -292,6 +299,11 @@
         };
       } else if (data.status === 'Return For Revision') {
         editPanel.classList.remove('hidden-view');
+        const remarks = data.approvalRemarks || data.reviewRemarks || '';
+        if (remarks && revisionRemarksWrap) {
+          document.getElementById('requestor-revision-remarks').textContent = remarks;
+          revisionRemarksWrap.classList.remove('hidden-view');
+        }
         const editButton = document.getElementById('btn-edit-requestor');
         if (editButton && data.editResponseUrl) {
           editButton.href = data.editResponseUrl;

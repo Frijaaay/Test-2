@@ -472,8 +472,6 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  setupInteractiveFilters(); // Register filters and sort controls
 			setupAttachmentViewerControls();
 
-			cleanAddressBar();
-
 		  google.script.run
 			.withSuccessHandler(handleServerResponse)
 			.withFailureHandler(handleServerFailure)
@@ -519,26 +517,23 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  if (response.status === 'SAVE_TOKEN') {
 			state.token = response.token;
 			localStorage.setItem('cvg_token', response.token);
-			cleanAddressBar();
 			renderResolved(response);
 			return;
 		  }
 
 		  if (response.status === 'REQUIRE_AUTH') {
-			cleanAddressBar();
+			updateAddressBar();
 			showAuthRequired(response.base64requestid, response.appBUrl);
 			return;
 		  }
 
 		  if (response.status === 'RENDER_DATA') {
-			cleanAddressBar();
 			renderResolved(response);
 			return;
 		  }
 		}
 
 		function handleServerFailure(error) {
-			cleanAddressBar();
 		  showError(error && error.message ? error.message : 'Failed to synchronize with server. Please refresh.');
 		}
 
@@ -562,17 +557,25 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  if (response.isDashboard) {
 			document.getElementById('global-filter-bar').classList.remove('hidden-view');
 			viewModule.renderDashboard(getProcessedRows(), { preFiltered: true });
+			updateAddressBar();
 		  } else {
 			document.getElementById('global-filter-bar').classList.add('hidden-view');
 			state.currentBase64Id = urlSafeB64(btoa(response.data.requestId));
 			viewModule.renderDetails(response.data);
+			updateAddressBar(response.data.requestId);
 		  }
 		}
 
-		function cleanAddressBar() {
+		function updateAddressBar(requestId) {
+		  let params = null;
+		  if (requestId) {
+			params = { dXJsX3BhcmFt: urlSafeB64(btoa(requestId)) };
+		  }
 		  try {
-			google.script.history.replace({}, {}, '');
-		  } catch (e) { /* no-op */ }
+			google.script.history.replace(null, params, '');
+		  } catch (e) {
+			console.warn('Could not update address bar:', e);
+		  }
 		}
 
 		// ============ CENTRALIZED VIEW ROUTER ============
@@ -742,9 +745,11 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  });
 
 		  if (cachedRow) {
+			document.getElementById('global-filter-bar').classList.add('hidden-view');
 			state.currentBase64Id = urlSafeB64(btoa(cachedRow.requestId));
 			const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
 			viewModule.renderDetails(cachedRow);
+			updateAddressBar(cachedRow.requestId);
 		  } else {
 			showView('view-loading');
 			const base64Id = btoa(requestId);
@@ -852,6 +857,22 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 			.submitAdditionalApproverDecision(state.token, state.currentBase64Id, payload);
 		}
 
+		function pollForTestResult(onSuccess) {
+		  if (!state.token || !state.currentBase64Id) return;
+
+		  google.script.run
+			.withSuccessHandler(function(response) {
+			  if (response && response.error) {
+				console.error('Polling error:', response.error);
+				return;
+			  }
+			  if (response && response.submitted) {
+				onSuccess();
+			  }
+			})
+			.checkForTestResult(state.token, state.currentBase64Id);
+		}
+
 		function handleCancel() {
 		  showView('view-loading');
 		  google.script.run
@@ -889,7 +910,6 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		}
 
 		function showError(message) {
-			cleanAddressBar();
 		  showView('view-error');
 		  document.getElementById('error-message').textContent = message;
 		}

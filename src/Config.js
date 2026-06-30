@@ -29,7 +29,8 @@ const Config = {
   },
   
   getAppUrl() { 
-    return PropertiesService.getScriptProperties().getProperty('APP_URL') || ''; 
+    const props = PropertiesService.getScriptProperties();
+    return props.getProperty('ENV') === 'dev' ? props.getProperty('APP_DEV_URL') : props.getProperty('APP_LIVE_URL');
   },
   
   getAuthUrl() {

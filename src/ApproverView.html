@@ -153,6 +153,10 @@
               <p class="section-eyebrow mb-1">Timestamp</p>
               <p id="approver-test-timestamp" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
             </div>
+            <div id="approver-review-remarks-wrap" class="col-span-2 hidden-view">
+              <p class="section-eyebrow mb-1">Tester Remarks</p>
+              <p id="approver-review-remarks" class="text-gray-700 whitespace-pre-wrap bg-amber-50 p-3 rounded-lg border border-amber-100 text-[12.5px]"></p>
+            </div>
             <div class="col-span-2">
               <p class="section-eyebrow mb-1">Test Findings</p>
               <p id="approver-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
@@ -203,7 +207,7 @@
         <!-- Decision Options matching Flowchart including Return for Revision [Slide 5] -->
         <div class="flex flex-col gap-2.5 mb-4">
           <button class="review-choice text-center px-1 text-xs" data-signoff="Approved">Approve</button>
-          <button class="review-choice text-center px-1 text-xs" data-signoff="Passed with Conditions">Approve w/ Cond.</button>
+          <button class="review-choice text-center px-1 text-xs" data-signoff="Approved with Conditions">Approve w/ Cond.</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Rejected">Reject</button>
           <button class="review-choice text-center px-1 text-xs" data-signoff="Return For Revision">Return for Revision</button>
         </div>
@@ -215,6 +219,43 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
           Submit Sign-Off Decision
         </button>
+      </div>
+
+      <!-- Additional Approvers Panel -->
+      <div id="additional-approvers-panel" class="hidden-view cvg-card p-5 anim-fade-up-4">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 9a3 3 0 01-3 3H9a3 3 0 01-3-3v0a3 3 0 013-3h6a3 3 0 013 3v0zM12 12v9M12 2v4"/></svg>
+          </span>
+          <p class="section-title">Additional Approvers</p>
+        </div>
+        <div id="additional-approvers-list" class="space-y-2 mb-4"></div>
+        <div id="add-approver-form">
+          <p class="section-eyebrow mb-1">Add Approver</p>
+          <div class="flex gap-2">
+            <input type="email" id="new-approver-email" placeholder="Enter approver's email" class="cvg-textarea w-full p-2 font-sans text-sm">
+            <button id="btn-add-approver" class="btn-ghost !border-gray-300 px-3 py-2 rounded-lg text-xs font-semibold">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Approver Decision Panel -->
+      <div id="additional-approver-decision-panel" class="hidden-view cvg-card p-5 anim-fade-up-3">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="icon-chip icon-chip-amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </span>
+          <p class="section-title">Submit Your Decision</p>
+        </div>
+        <div class="flex flex-col gap-2.5 mb-4">
+          <button class="review-choice text-center px-1 text-xs" data-addtl-decision="Approved">Approve</button>
+          <button class="review-choice text-center px-1 text-xs" data-addtl-decision="Needs More Info">Needs More Info</button>
+          <button class="review-choice text-center px-1 text-xs" data-addtl-decision="Rejected">Reject</button>
+        </div>
+        <div id="additional-approver-remarks-wrap" class="hidden-view mb-4">
+          <textarea id="additional-approver-remarks" rows="3" placeholder="Provide comments for your decision..." class="cvg-textarea w-full p-3 font-sans"></textarea>
+        </div>
+        <button id="btn-submit-additional-approver" class="btn-primary w-full py-2.5 rounded-xl font-semibold" disabled>Submit Decision</button>
       </div>
     </div>
   </div>
@@ -366,6 +407,12 @@
           resultsContent.classList.remove('hidden-view');
           noResultsContent.classList.add('hidden-view');
           document.getElementById('approver-test-outcome-badge').outerHTML = badgeHtml(data.testResultStatus || 'Completed', 'approver-test-outcome-badge');
+
+          const testRemarks = data.testRemarks || '';
+          const reviewRemarksWrap = document.getElementById('approver-review-remarks-wrap');
+          document.getElementById('approver-review-remarks').textContent = testRemarks;
+          reviewRemarksWrap.classList.toggle('hidden-view', !testRemarks);
+
           document.getElementById('approver-test-timestamp').textContent = data.testResults.timestamp || '—';
           document.getElementById('approver-test-findings').textContent = data.testResults.testFindings || '—';
           document.getElementById('approver-test-issues').textContent = data.testResults.knownIssues || '—';
@@ -387,20 +434,90 @@
       // Only show controls if status is Completed AND test results are available
       if (data.status === 'Completed' && data.testResults) {
         actionPanel.classList.remove('hidden-view');
-        this.initApproverControls(data);
+
+        const additionalApprovers = data.additionalApprovers ? data.additionalApprovers.split(',').map(e => e.trim()) : [];
+        const decisions = data.additionalApproverDecisions ? JSON.parse(data.additionalApproverDecisions) : {};
+        const viewerIsAdditional = additionalApprovers.includes(state.viewerEmail);
+
+        const addApproverPanel = document.getElementById('additional-approvers-panel');
+        const addtlDecisionPanel = document.getElementById('additional-approver-decision-panel');
+
+        if (viewerIsAdditional) {
+          actionPanel.classList.add('hidden-view');
+          addApproverPanel.classList.add('hidden-view');
+          if (!decisions[state.viewerEmail]) {
+            addtlDecisionPanel.classList.remove('hidden-view');
+            this.initAdditionalApproverControls(data);
+          }
+        } else {
+          addApproverPanel.classList.remove('hidden-view');
+          addtlDecisionPanel.classList.add('hidden-view');
+
+          const pendingApprovals = additionalApprovers.filter(email => !decisions[email]).length;
+
+          this.initApproverControls(data, pendingApprovals);
+          this.renderAdditionalApprovers(additionalApprovers, decisions);
+
+          if (pendingApprovals > 0) {
+            document.getElementById('btn-submit-approver').disabled = true;
+            document.getElementById('btn-submit-approver').title = pendingApprovals + ' additional approvals are pending.';
+          }
+        }
       }
+    },
+
+    renderAdditionalApprovers(approvers, decisions) {
+      const listContainer = document.getElementById('additional-approvers-list');
+      listContainer.innerHTML = '';
+
+      if (!approvers || approvers.length === 0) {
+        listContainer.innerHTML = '<p class="text-xs text-gray-500 text-center py-2">No additional approvers have been added.</p>';
+      } else {
+        approvers.forEach(email => {
+          const decision = decisions[email];
+          let statusHtml = '<span class="text-xs font-semibold text-amber-600">Pending</span>';
+          if (decision) {
+            const color = decision.decision === 'Approved' ? 'text-green-600' : 'text-red-600';
+            statusHtml = `<span class="text-xs font-semibold ${color}">${escapeHtml(decision.decision)}</span>`;
+          }
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center bg-slate-50 p-2 rounded-lg';
+          row.innerHTML = `<p class="text-xs text-gray-700 truncate">${escapeHtml(email)}</p>${statusHtml}`;
+          listContainer.appendChild(row);
+        });
+      }
+
+      document.getElementById('btn-add-approver').onclick = () => {
+        const emailInput = document.getElementById('new-approver-email');
+        const email = emailInput.value.trim();
+        if (email) {
+          addAdditionalApprover(email);
+          emailInput.value = '';
+        } else {
+          toast('Please enter a valid email address.', true);
+        }
+      };
     },
 
     resetApproverDecisionPanel() {
       this.state.signoffChoice = null;
       document.getElementById('approver-action-panel').classList.add('hidden-view');
+      document.getElementById('additional-approvers-panel').classList.add('hidden-view');
+      document.getElementById('additional-approver-decision-panel').classList.add('hidden-view');
+
       document.getElementById('approver-remarks-wrap').classList.add('hidden-view');
       document.getElementById('approver-remarks').value = '';
       document.querySelectorAll('#approver-action-panel .review-choice').forEach(el => el.classList.remove('active'));
       document.getElementById('btn-submit-approver').disabled = true;
+      document.getElementById('btn-submit-approver').title = '';
+
+      document.getElementById('additional-approver-remarks-wrap').classList.add('hidden-view');
+      document.getElementById('additional-approver-remarks').value = '';
+      document.querySelectorAll('#additional-approver-decision-panel .review-choice').forEach(el => el.classList.remove('active'));
+      document.getElementById('btn-submit-additional-approver').disabled = true;
     },
 
-    initApproverControls(data) {
+    initApproverControls(data, pendingApprovals) {
       const panel = document.getElementById('approver-action-panel');
       const remarksWrap = document.getElementById('approver-remarks-wrap');
       const submitBtn = document.getElementById('btn-submit-approver');
@@ -412,17 +529,21 @@
           this.state.signoffChoice = btn.getAttribute('data-signoff');
           
           const needsRemarks = (this.state.signoffChoice === 'Rejected' || 
-                                this.state.signoffChoice === 'Passed with Conditions' ||
+                                this.state.signoffChoice === 'Approved with Conditions' ||
                                 this.state.signoffChoice === 'Return For Revision');
           remarksWrap.classList.toggle('hidden-view', !needsRemarks);
-          submitBtn.disabled = false;
+
+          // Only enable the submit button if there are no pending additional approvals
+          if (pendingApprovals === 0) {
+            submitBtn.disabled = false;
+          }
         };
       });
 
       submitBtn.onclick = () => {
         const remarksVal = document.getElementById('approver-remarks').value.trim();
         if ((this.state.signoffChoice === 'Rejected' || 
-             this.state.signoffChoice === 'Passed with Conditions' || 
+             this.state.signoffChoice === 'Approved with Conditions' || 
              this.state.signoffChoice === 'Return For Revision') && !remarksVal) {
           toast('Remarks are required for this sign-off choice.', true);
           return;
@@ -431,6 +552,35 @@
         submitDecision({
           newStatus: (this.state.signoffChoice === 'Return For Revision') ? 'Return For Revision' : 'Completed',
           outcome: (this.state.signoffChoice === 'Return For Revision') ? null : this.state.signoffChoice,
+          remarks: remarksVal
+        });
+      };
+    },
+
+    initAdditionalApproverControls(data) {
+      const panel = document.getElementById('additional-approver-decision-panel');
+      const remarksWrap = document.getElementById('additional-approver-remarks-wrap');
+      const submitBtn = document.getElementById('btn-submit-additional-approver');
+      let choice = null;
+
+      panel.querySelectorAll('[data-addtl-decision]').forEach(btn => {
+        btn.onclick = () => {
+          panel.querySelectorAll('[data-addtl-decision]').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+          choice = btn.getAttribute('data-addtl-decision');
+          remarksWrap.classList.remove('hidden-view');
+          submitBtn.disabled = false;
+        };
+      });
+
+      submitBtn.onclick = () => {
+        const remarksVal = document.getElementById('additional-approver-remarks').value.trim();
+        if (!remarksVal) {
+          toast('Remarks are required for your decision.', true);
+          return;
+        }
+        submitAdditionalDecision({
+          outcome: choice,
           remarks: remarksVal
         });
       };

@@ -265,8 +265,8 @@ const RequestService = {
         } 
         else if (payload.newStatus === 'Completed') {
           updates['Testing Completed Date'] = new Date();
-          if (payload.outcome) updates['Test Result Status'] = payload.outcome; 
-          updates['Review Remarks'] = payload.remarks;
+          if (payload.outcome) updates['Test Result Status'] = payload.outcome;
+          if (payload.remarks) updates['Test Remarks'] = payload.remarks;
           SheetRepository.updateResponseRow(requestId, updates);
 
           // Automated Action: Trigger Email Alert to Approver [Slide 4]
@@ -293,7 +293,7 @@ const RequestService = {
         } else {
           if (payload.outcome === 'Approved') {
             finalStatus = 'Approved';
-          } else if (payload.outcome === 'Passed with Conditions') {
+          } else if (payload.outcome === 'Approved with Conditions') {
             finalStatus = 'Approved with Conditions';
           } else {
             finalStatus = 'Rejected';
@@ -305,14 +305,12 @@ const RequestService = {
         updates['Approval Remarks'] = payload.remarks || '';
         SheetRepository.updateResponseRow(requestId, updates);
 
-        const testResults = this.getTestResultsByRequestId(requestId);
-        const extraCCs = testResults ? testResults.ccRecipients : '';
+        const additionalApprovers = SheetRepository.getCell(sheet, row, 'Additional Approvers') || '';
         
         const ccList = [
-          assignedTester,           
-          session.email,            
-          Config.getStakeholderEmail(), 
-          extraCCs                  
+          assignedTester,
+          session.email, // Main approver
+          additionalApprovers
         ].filter(email => email && email.trim() !== '').join(', ');
 
         // Automated Action: Send final closure notification email [Slide 6]
@@ -400,6 +398,105 @@ const RequestService = {
     } catch (err) {
       console.error('executeCancelRequest error: ' + err.stack);
       return { error: 'Something went wrong cancelling this request.' };
+    }
+  },
+
+  addAdditionalApprover(token, base64Id, newApproverEmail) {
+    try {
+      const session = AuthService.getSession(token);
+      if (!session) return { error: 'Session expired. Please refresh.' };
+      if (session.role !== 'Approver') return { error: 'You do not have permission to add approvers.' };
+
+      const requestId = AuthService.base64UrlDecode(base64Id);
+      const sheet = SheetRepository.getSheetByGid(Config.MAIN_SHEET);
+      const data = sheet.getDataRange().getValues();
+      const i = SheetRepository.findRowIndexByRequestId(sheet, data, requestId);
+      if (i === -1) return { error: 'Request not found.' };
+
+      const row = data[i];
+      const currentApprovers = String(SheetRepository.getCell(sheet, row, 'Additional Approvers') || '');
+      const approverList = currentApprovers ? currentApprovers.split(',').map(e => e.trim()) : [];
+
+      if (approverList.includes(newApproverEmail)) {
+        return { error: 'This approver has already been added.' };
+      }
+      approverList.push(newApproverEmail);
+
+      SheetRepository.updateResponseRow(requestId, { 'Additional Approvers': approverList.join(', ') });
+
+      const details = {
+        request_id: requestId,
+        name: newApproverEmail,
+        type: SheetRepository.getCell(sheet, row, 'Request Type'),
+        summary: SheetRepository.getCell(sheet, row, 'Summary of Request'),
+        added_by: session.email,
+        date_submitted: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Date Submitted'))
+      };
+      EmailService.sendAddedAsApproverEmail(newApproverEmail, details);
+
+      return this.getRequestDetails(requestId, session.email, session.role);
+    } catch (err) {
+      console.error('addAdditionalApprover error: ' + err.stack);
+      return { error: 'Something went wrong adding the approver.' };
+    }
+  },
+
+  submitAdditionalApproverDecision(token, base64Id, payload) {
+    try {
+      const session = AuthService.getSession(token);
+      if (!session) return { error: 'Session expired. Please refresh.' };
+
+      const requestId = AuthService.base64UrlDecode(base64Id);
+      const sheet = SheetRepository.getSheetByGid(Config.MAIN_SHEET);
+      const data = sheet.getDataRange().getValues();
+      const i = SheetRepository.findRowIndexByRequestId(sheet, data, requestId);
+      if (i === -1) return { error: 'Request not found.' };
+
+      const row = data[i];
+      const decisionsJSON = SheetRepository.getCell(sheet, row, 'Additional Approver Decisions') || '{}';
+      const decisions = JSON.parse(decisionsJSON);
+
+      decisions[session.email] = {
+        decision: payload.outcome,
+        remarks: payload.remarks,
+        timestamp: new Date().toISOString()
+      };
+
+      SheetRepository.updateResponseRow(requestId, { 'Additional Approver Decisions': JSON.stringify(decisions) });
+
+      const details = {
+        request_id: requestId,
+        name: session.email,
+        outcome: payload.outcome,
+        remarks: payload.remarks || 'None',
+        type: SheetRepository.getCell(sheet, row, 'Request Type'),
+        summary: SheetRepository.getCell(sheet, row, 'Summary of Request'),
+        date_submitted: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Date Submitted'))
+      };
+      EmailService.sendAdditionalDecisionConfirmation(session.email, details);
+
+      const notificationDetails = {
+        request_id: requestId,
+        additionalApproverEmail: session.email,
+        outcome: payload.outcome,
+        remarks: payload.remarks || 'None',
+        type: SheetRepository.getCell(sheet, row, 'Request Type'),
+        summary: SheetRepository.getCell(sheet, row, 'Summary of Request'),
+        date_submitted: this.formatDateCell(SheetRepository.getCell(sheet, row, 'Date Submitted'))
+      };
+      // Notify the main approver
+      EmailService.sendAdditionalDecisionNotification(Config.getApproverEmail(), notificationDetails);
+
+      const existingLogs = SheetRepository.getCell(sheet, row, 'Status Logs') || '';
+      const formattedTimestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, yyyy h:mm a');
+      const logLine = `${formattedTimestamp} — ${session.email} (Addtl. Approver): ${payload.outcome}` +
+        (payload.remarks ? ` — "${payload.remarks}"` : '');
+      SheetRepository.updateResponseRow(requestId, { 'Status Logs': existingLogs ? existingLogs + '\n' + logLine : logLine });
+
+      return this.getRequestDetails(requestId, session.email, session.role);
+    } catch (err) {
+      console.error('submitAdditionalApproverDecision error: ' + err.stack);
+      return { error: 'Something went wrong submitting the decision.' };
     }
   },
 
@@ -497,6 +594,19 @@ const RequestService = {
         }
       }
 
+      // If not found, search the results sheet for result-level attachments
+      const resultSheet = SheetRepository.getSheetByGid(Config.RESULT_SHEET);
+      const resultData = resultSheet.getDataRange().getValues();
+      const resultAttachmentHeader = 'Supporting Screenshots/Files';
+      
+      for (let i = 1; i < resultData.length; i++) {
+        const row = resultData[i];
+        const values = this.normalizeAttachmentValue(SheetRepository.getCell(resultSheet, row, resultAttachmentHeader));
+        if (values.indexOf(String(fileId)) !== -1) {
+          return String(SheetRepository.getCell(resultSheet, row, 'Request ID'));
+        }
+      }
+
       return '';
     } catch (err) {
       console.error('findRequestIdByAttachmentFileId error: ' + err.stack);
@@ -532,10 +642,13 @@ const RequestService = {
       editResponseUrl: SheetRepository.getCell(sheet, row, 'Edit Response URL'),
       reviewRemarks: SheetRepository.getCell(sheet, row, 'Review Remarks'),
       testResultStatus: SheetRepository.getCell(sheet, row, 'Test Result Status'),
+      testRemarks: SheetRepository.getCell(sheet, row, 'Test Remarks'),
       ccRecipients: SheetRepository.getCell(sheet, row, 'Added CC Recipients'),
       approvalStatus: SheetRepository.getCell(sheet, row, 'Approval Status'),
       approvalRemarks: SheetRepository.getCell(sheet, row, 'Approval Remarks'),
-      emailNotificationLogs: SheetRepository.getCell(sheet, row, 'Email Notification Logs')
+      emailNotificationLogs: SheetRepository.getCell(sheet, row, 'Email Notification Logs'),
+      additionalApprovers: SheetRepository.getCell(sheet, row, 'Additional Approvers'),
+      additionalApproverDecisions: SheetRepository.getCell(sheet, row, 'Additional Approver Decisions')
     };
   },
 

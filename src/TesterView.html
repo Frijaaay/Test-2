@@ -74,7 +74,7 @@
           </span>
           <h2 class="section-title">Workspace Specifications</h2>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm pb-5 border-b border-gray-100">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-4 text-sm pb-5 border-b border-gray-100">
           <div>
             <p class="section-eyebrow mb-1">Request Type</p>
             <p id="tester-field-type" class="text-gray-800 font-medium text-[13px]">—</p>
@@ -91,13 +91,12 @@
             <p class="section-eyebrow mb-1">Device Model</p>
             <p id="tester-field-model" class="text-gray-800 font-medium text-[13px]">—</p>
           </div>
+          <div>
+            <p class="section-eyebrow mb-1">Target Environment</p>
+            <p id="tester-field-env" class="text-gray-800 font-medium text-[13px]">—</p>
+          </div>
         </div>
-        <div class="pt-1">
-          <p class="section-eyebrow mb-1">Target Environment</p>
-          <p id="tester-field-env" class="text-gray-800 font-medium text-[13px]">—</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-gray-100 mt-5 pt-5">
+        <div class="grid grid-cols-1 gap-5 border-t border-gray-100 mt-5 pt-5">
           <div>
             <p class="section-eyebrow mb-2">Summary of Request</p>
             <p id="tester-field-summary" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
@@ -144,6 +143,22 @@
 
     <!-- RIGHT: Narrow column — Control Panel only -->
     <div class="flex flex-col gap-5 lg:sticky lg:top-[84px]">
+
+      <!-- Action Panel: Stage 2 (Evaluation Form) -->
+      <div id="tester-stage2-form-card" class="hidden-view cvg-card p-5 anim-fade-up-3">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="text-[15px]">📋</span>
+          <h2 class="section-title">Submit Evaluation Form</h2>
+        </div>
+        <p class="text-[13px] text-gray-500 mb-4 leading-relaxed">
+          First, submit the detailed test evaluation form. After submission, refresh this page to record your final decision below.
+        </p>
+        <a id="tester-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=" target="_blank"
+           class="btn-ghost w-full py-3 rounded-xl">
+          Open Evaluation Form
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+        </a>
+      </div>
 
       <!-- Action Panel: Stage 1 (Claims and Review Transitions) -->
       <div id="tester-action-panel" class="hidden-view anim-fade-up-3 flex flex-col gap-5">
@@ -201,14 +216,6 @@
             <button class="review-choice text-center px-1 text-xs" data-decision="Return For Revision">Return for Revision</button>
           </div>
 
-          <div id="tester-stage2-form-link-wrap" class="hidden-view space-y-4 mb-4">
-            <a id="tester-form-link" href="https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=" target="_blank"
-               class="btn-ghost w-full py-3 rounded-xl">
-              Open Evaluation Form
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
-            </a>
-          </div>
-
           <div id="tester-stage2-remarks-wrap" class="hidden-view mb-4">
             <textarea id="tester-stage2-remarks" rows="3" placeholder="Specify decision remarks or validation caveats..."
               class="cvg-textarea w-full p-3 font-sans"></textarea>
@@ -230,7 +237,9 @@
     state: {
       activeTab: 'all',
       stage1Choice: null,
-      decisionChoice: null
+      decisionChoice: null,
+      pollIntervalId: null,
+      formSubmitted: false
     },
 
     railClass(status) {
@@ -375,14 +384,19 @@
       const isUnassigned = (!data.tester);
       const isMyAssignment = (data.tester && data.tester.toLowerCase() === state.viewerEmail.toLowerCase());
       const actionPanel = document.getElementById('tester-action-panel');
+      const formCard = document.getElementById('tester-stage2-form-card');
+
       actionPanel.classList.add('hidden-view');
+      formCard.classList.add('hidden-view');
 
       if (isUnassigned || isMyAssignment) {
-        actionPanel.classList.remove('hidden-view');
 
         if (data.status === 'Submitted' || data.status === 'Resubmitted') {
+          actionPanel.classList.remove('hidden-view');
           this.initTesterStage1(data);
         } else if (data.status === 'In Testing') {
+          actionPanel.classList.remove('hidden-view');
+          formCard.classList.remove('hidden-view');
           this.initTesterStage2(data);
         } else {
           actionPanel.classList.add('hidden-view');
@@ -393,11 +407,16 @@
     resetTesterDecisionPanel() {
       this.state.stage1Choice = null;
       this.state.decisionChoice = null;
+      this.state.formSubmitted = false;
+      if (this.state.pollIntervalId) {
+        clearInterval(this.state.pollIntervalId);
+        this.state.pollIntervalId = null;
+      }
 
       document.getElementById('tester-stage1-controls').classList.add('hidden-view');
       document.getElementById('tester-stage2-controls').classList.add('hidden-view');
+      document.getElementById('tester-stage2-form-card').classList.add('hidden-view');
       document.getElementById('tester-stage1-remarks-wrap').classList.add('hidden-view');
-      document.getElementById('tester-stage2-form-link-wrap').classList.add('hidden-view');
       document.getElementById('tester-stage2-remarks-wrap').classList.add('hidden-view');
       
       document.getElementById('tester-stage1-remarks').value = '';
@@ -448,12 +467,44 @@
 
     initTesterStage2(data) {
       document.getElementById('tester-stage2-controls').classList.remove('hidden-view');
-      document.getElementById('tester-form-link').href = 'https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=' + encodeURIComponent(data.requestId);
+      const formLink = document.getElementById('tester-form-link');
+      formLink.href = 'https://docs.google.com/forms/d/e/1FAIpQLSerc4dYHt1n2ioMxA-sVyjbg29S5t8RuXbrHirMF28fHPvRaw/viewform?usp=pp_url&entry.425664775=' + encodeURIComponent(data.requestId);
 
-      const formLinkWrap = document.getElementById('tester-stage2-form-link-wrap');
       const remarksWrap = document.getElementById('tester-stage2-remarks-wrap');
       const submitBtn = document.getElementById('btn-submit-tester-stage2');
       const decisionBtns = document.querySelectorAll('#tester-stage2-controls [data-decision]');
+      this.state.formSubmitted = !!data.testResults;
+
+      if (this.state.formSubmitted) {
+        this.setFormButtonState('success');
+      } else {
+        this.setFormButtonState('default');
+        formLink.onclick = () => {
+          this.setFormButtonState('loading');
+          
+          if (this.state.pollIntervalId) clearInterval(this.state.pollIntervalId);
+
+          this.state.pollIntervalId = setInterval(() => {
+            pollForTestResult(() => { // onSuccess callback
+              clearInterval(this.state.pollIntervalId);
+              this.state.pollIntervalId = null;
+              this.state.formSubmitted = true;
+              this.setFormButtonState('success');
+              toast('Test result submission detected.');
+
+              // If a decision was already selected, re-enable the submit button
+              if (this.state.decisionChoice) {
+                const isCompletion = this.state.decisionChoice !== 'Return For Revision';
+                if (isCompletion) {
+                  submitBtn.disabled = false;
+                  submitBtn.title = '';
+                }
+              }
+            });
+          }, 5000); // Poll every 5 seconds
+          return true; // Allow default link behavior
+        };
+      }
 
       decisionBtns.forEach(btn => {
         btn.onclick = () => {
@@ -466,15 +517,27 @@
                                this.state.decisionChoice === 'Failed' ||
                                this.state.decisionChoice === 'Return For Revision';
 
-          formLinkWrap.classList.toggle('hidden-view', !isCompletion);
           remarksWrap.classList.toggle('hidden-view', !needsRemarks);
-          submitBtn.disabled = false;
+
+          if (isCompletion && !this.state.formSubmitted) {
+            submitBtn.disabled = true;
+            submitBtn.title = 'Please submit the evaluation form to proceed.';
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.title = '';
+          }
         };
       });
 
       submitBtn.onclick = () => {
         const remarksVal = document.getElementById('tester-stage2-remarks').value.trim();
         const choice = this.state.decisionChoice;
+        const isCompletion = choice !== 'Return For Revision';
+
+        if (isCompletion && !this.state.formSubmitted) {
+          toast('Evaluation form has not been submitted. Please fill out the form.', true);
+          return;
+        }
 
         const needsRemarks = choice === 'Passed with Conditions' || choice === 'Failed' || choice === 'Return For Revision';
         if (needsRemarks && !remarksVal) {
@@ -492,6 +555,33 @@
           });
         }
       };
+    },
+
+    setFormButtonState(state) { // 'default', 'loading', 'success'
+      const link = document.getElementById('tester-form-link');
+      if (!link) return;
+
+      link.classList.remove('btn-ghost-loading', 'btn-ghost-success');
+      link.onclick = null;
+
+      if (state === 'loading') {
+        link.classList.add('btn-ghost-loading');
+        link.innerHTML = `
+          <div class="w-4 h-4 rounded-full border-2 border-gray-200 border-t-brand animate-spin" style="border-top-color: #048986;"></div>
+          Waiting for submission...
+        `;
+      } else if (state === 'success') {
+        link.classList.add('btn-ghost-success');
+        link.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          Submission Received
+        `;
+      } else { // default
+        link.innerHTML = `
+          Open Evaluation Form
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+        `;
+      }
     }
   };
 </script>

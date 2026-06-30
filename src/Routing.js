@@ -47,6 +47,21 @@ function cancelRequest(token, base64Id) {
   return RequestService.executeCancelRequest(token, base64Id);
 }
 
+function addAdditionalApprover(token, base64Id, email) {
+  return RequestService.addAdditionalApprover(token, base64Id, email);
+}
+
+function submitAdditionalApproverDecision(token, base64Id, payload) {
+  return RequestService.submitAdditionalApproverDecision(token, base64Id, payload);
+}
+
+function checkForTestResult(token, base64Id) {
+  const session = AuthService.getSession(token);
+  if (!session) return { error: 'Session expired. Please refresh.' };
+  const requestId = AuthService.base64UrlDecode(base64Id);
+  return { submitted: !!RequestService.getTestResultsByRequestId(requestId) };
+}
+
 function getSecureAttachment(token, fileId) {
   return RequestService.getSecureAttachment(token, fileId);
 }
