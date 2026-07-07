@@ -138,17 +138,17 @@ const EmailService = {
   },
 
   sendFinalClosureNotification(recipientEmail, details) {
-    const subject = `Test Request Final Status Notification - ${details.request_id} [${details.final_status}]`;
+    const subject = `Request for Testing #${details.request_id} is: ${details.final_status}`;
     const params = {
       subject: subject,
       title: `Request for testing outcome: ${details.final_status}`,
       name: details.requestor_name,
-      message_body: 'Your request for testing has been reviewed and finalized.',
+      message_body: 'Your request for testing has been reviewed and finalized.<br><br>Please take note of the remarks below if any.',
       request_id: details.request_id,
       type: details.type,
       summary: details.summary,
       date_submitted: details.date_submitted,
-      reason: `Approver: "${details.remarks}"`,
+      reason: details.remarks,
       cc: details.cc_recipients
     };
     return this.sendMail(recipientEmail, params);

@@ -1,0 +1,20 @@
+{
+  "name": "test_request_script",
+  "version": "2.2.0",
+  "description": "App A",
+  "homepage": "https://github.com/Frijaaay/Test-2#readme",
+  "bugs": {
+    "url": "https://github.com/Frijaaay/Test-2/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Frijaaay/Test-2.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "routing.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

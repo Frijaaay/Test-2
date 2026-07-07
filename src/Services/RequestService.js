@@ -306,12 +306,17 @@ const RequestService = {
         SheetRepository.updateResponseRow(requestId, updates);
 
         const additionalApprovers = SheetRepository.getCell(sheet, row, 'Additional Approvers') || '';
+        const staticCCs = Config.getFinalNotifCcEmail(); // Re-add static CC list from config
         
-        const ccList = [
+        const allEmails = [
           assignedTester,
           session.email, // Main approver
-          additionalApprovers
-        ].filter(email => email && email.trim() !== '').join(', ');
+          additionalApprovers,
+          staticCCs
+        ].join(',');
+
+        // Create a unique list of emails to prevent duplicates
+        const ccList = [...new Set(allEmails.split(',').map(e => e.trim()).filter(Boolean))].join(', ');
 
         // Automated Action: Send final closure notification email [Slide 6]
         const closureDetails = {
