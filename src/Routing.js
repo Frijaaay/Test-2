@@ -9,7 +9,7 @@ function doGet(e) {
   return template.evaluate()
     .setTitle('Test Request Management')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setFaviconUrl('https://raw.githubusercontent.com/Frijaaay/cdn/refs/heads/main/src/converge/logos/favicon.ico')
+    .setFaviconUrl('https://cdn.statically.io/gh/Frijaaay/cdn@main/src/converge/logos/favicon.ico')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 

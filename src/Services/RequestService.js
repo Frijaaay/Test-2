@@ -632,7 +632,7 @@ const RequestService = {
       requestType: SheetRepository.getCell(sheet, row, 'Request Type'),
       summary: SheetRepository.getCell(sheet, row, 'Summary of Request'),
       detailedDescription: SheetRepository.getCell(sheet, row, 'Detailed Description'),
-      firmwareVersion: SheetRepository.getCell(sheet, row, 'Firmware/App Version'),
+      firmwareVersion: SheetRepository.getCell(sheet, row, 'Firmware/Software Version'),
       deviceModel: SheetRepository.getCell(sheet, row, 'Device Model'),
       targetEnvironment: SheetRepository.getCell(sheet, row, 'Target Environment'),
       testPlanUrl: SheetRepository.getCell(sheet, row, 'Test Plan'),

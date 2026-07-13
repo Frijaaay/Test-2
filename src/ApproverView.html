@@ -5,7 +5,7 @@
       <span class="icon-chip icon-chip-green">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
       </span>
-      <h1 class="section-title">Technical Approvals Queue</h1>
+      <h1 class="section-title">Approvals Queue</h1>
     </div>
     <span id="approver-count" class="text-xs font-mono-cvg font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md"></span>
   </div>
@@ -72,7 +72,7 @@
           <span class="icon-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </span>
-          <h2 class="section-title">Workspace Specifications</h2>
+          <h2 class="section-title">Request Details</h2>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4 text-sm pb-5 border-b border-gray-100">
           <div>
@@ -80,8 +80,8 @@
             <p id="approver-field-type" class="text-gray-800 font-medium text-[13px]">—</p>
           </div>
           <div>
-            <p class="section-eyebrow mb-1">Test Schedule</p>
-            <p id="approver-field-schedule" class="text-gray-800 font-medium text-[13px]">—</p>
+            <p class="section-eyebrow mb-1">Firmware/Software</p>
+            <p id="approver-field-firmware" class="text-gray-800 font-medium text-[13px]">—</p>
           </div>
           <div>
             <p class="section-eyebrow mb-1">Device Model</p>
@@ -101,6 +101,10 @@
           <div>
             <p class="section-eyebrow mb-2">Detailed Description</p>
             <p id="approver-field-description" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
+          </div>
+          <div>
+            <p class="section-eyebrow mb-2">Test Schedule</p>
+            <p id="approver-field-schedule" class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap bg-slate-50/60 p-4 rounded-xl border border-gray-100">—</p>
           </div>
         </div>
       </div>
@@ -383,6 +387,7 @@
 
       document.getElementById('approver-field-type').textContent = data.requestType || '—';
       document.getElementById('approver-field-schedule').textContent = data.testSchedule || '—';
+      document.getElementById('approver-field-firmware').textContent = data.firmwareVersion || '—';
       document.getElementById('approver-field-device').textContent = data.deviceModel || '—';
       document.getElementById('approver-field-env').textContent = data.targetEnvironment || '—';
       document.getElementById('approver-field-summary').textContent = data.summary || '—';

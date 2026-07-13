@@ -83,7 +83,7 @@ const EmailService = {
       subject: subject,
       title: "Action Required: Revisions Needed",
       name: details.name,
-      message_body: "Your request has been evaluated by the testing team and requires update/revisions before we can proceed. Please check the remarks listed below and click 'Edit Response' to modify your submission.",
+      message_body: "Your request has been evaluated by the testing team and requires update/revisions before we can proceed. Please check the remarks/comments below and click 'Edit Response' to modify your submission.",
       request_id: details.request_id,
       type: details.type,
       summary: details.summary,
