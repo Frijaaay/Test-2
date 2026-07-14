@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "routing.js",
   "scripts": {
-    "push/prod": "npx clasp-env --folder C:/Users/jay.cortez/Desktop/Test_2 --scriptId 1NfwMFCeJClxyzM_WVcrKgDvN4ZfZfvVoYeZ_W_BcyJ37q8pmNtKvyeta",
-    "push/dev": "npx clasp-env --folder C:/Users/jay.cortez/Desktop/Test_2 --scriptId 1tmz4nK5CBDJ9oNIM05DwHnUTMwnaLRaxe5fem8GCMwIDwiepl55E2uu-"
+    "push/prod": "npx clasp-env --folder C:/Users/jay.cortez/Desktop/Test_2 --scriptId 1NfwMFCeJClxyzM_WVcrKgDvN4ZfZfvVoYeZ_W_BcyJ37q8pmNtKvyeta && clasp push --w",
+    "push/dev": "npx clasp-env --folder C:/Users/jay.cortez/Desktop/Test_2 --scriptId 1tmz4nK5CBDJ9oNIM05DwHnUTMwnaLRaxe5fem8GCMwIDwiepl55E2uu- && clasp push"
   }
 }

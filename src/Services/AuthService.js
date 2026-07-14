@@ -75,22 +75,35 @@ const AuthService = {
 
   getRoleByEmail(email) {
     if (!email) return 'Requestor';
-    
+
     const cache = CacheService.getScriptCache();
     const cacheKey = Config.CACHE_VERSION + '_role_' + email.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '');
-    
-    const cachedRole = cache.get(cacheKey);
-    if (cachedRole) return cachedRole;
+
+    const cachedRoles = cache.get(cacheKey);
+    if (cachedRoles) return cachedRoles;
 
     const sheet = SheetRepository.getRolesSheet();
     const data = sheet.getDataRange().getValues();
+    const roles = [];
 
     for (let i = 1; i < data.length; i++) {
       if (String(SheetRepository.getCell(sheet, data[i], 'Email')).toLowerCase() === email.toLowerCase()) {
-        const role = SheetRepository.getCell(sheet, data[i], 'Role');
-        cache.put(cacheKey, role, Config.ROLE_CACHE_TTL_SEC);
-        return role;
+        const roleValue = SheetRepository.getCell(sheet, data[i], 'Role');
+        const foundRoles = String(roleValue || '').split(',').map(r => r.trim()).filter(Boolean);
+        roles.push(...foundRoles);
       }
+    }
+
+    if (roles.length > 0) {
+      let uniqueRoles = [...new Set(roles)];
+      // If a user has other roles, the 'Requestor' role is redundant.
+      // Filter it out to simplify the UI and prevent confusion.
+      if (uniqueRoles.length > 1 && uniqueRoles.includes('Requestor')) {
+        uniqueRoles = uniqueRoles.filter(r => r !== 'Requestor');
+      }
+      const rolesString = uniqueRoles.join(',');
+      cache.put(cacheKey, rolesString, Config.ROLE_CACHE_TTL_SEC);
+      return rolesString;
     }
 
     cache.put(cacheKey, 'Requestor', Config.ROLE_CACHE_TTL_SEC);

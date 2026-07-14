@@ -448,7 +448,8 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  token: localStorage.getItem('cvg_token') || '',
 		  currentBase64Id: '',
 		  viewerEmail: '',
-		  viewerRole: '',
+		  viewerRoles: [],
+		  currentRole: '',
 		  attachmentPreviewUrl: '',
 		  attachmentPreviewName: '',
 		  attachmentPreviewMime: '',
@@ -510,8 +511,13 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 
 		  if (response.viewerEmail && response.viewerRole) {
 			state.viewerEmail = response.viewerEmail;
-			state.viewerRole = response.viewerRole;
-			updateHeaderMetrics(response.viewerEmail, response.viewerRole);
+			state.viewerRoles = response.viewerRole.split(',').map(r => r.trim()).filter(Boolean);
+			// If currentRole is not set or is not in the new list of roles, reset it.
+			// Otherwise, keep the user's selection.
+			if (!state.currentRole || !state.viewerRoles.includes(state.currentRole)) {
+			  state.currentRole = state.viewerRoles[0] || 'Requestor';
+			}
+			updateHeaderMetrics(state.viewerEmail, state.currentRole, state.viewerRoles);
 		  }
 
 		  if (response.status === 'SAVE_TOKEN') {
@@ -543,10 +549,10 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  let containerId = 'container-requestor';
 		  let viewModule = RequestorView;
 		  
-		  if (state.viewerRole === 'Tester') {
+		  if (state.currentRole === 'Tester') {
 			containerId = 'container-tester';
 			viewModule = TesterView;
-		  } else if (state.viewerRole === 'Approver') {
+		  } else if (state.currentRole === 'Approver') {
 			containerId = 'container-approver';
 			viewModule = ApproverView;
 		  }
@@ -606,22 +612,33 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		}
 
 		// ============ DYNAMIC HEADER MANAGEMENT ============
-		function updateHeaderMetrics(email, role) {
+		function updateHeaderMetrics(email, role, allRoles) {
 		  const emailElement = document.getElementById('user-identity');
 		  const roleTextElement = document.getElementById('role-indicator-text');
 		  const roleElement = document.getElementById('role-indicator');
+		  const roleContainer = document.getElementById('role-indicator-container');
 
 		  if (emailElement) {
 			emailElement.textContent = email || 'No Active Session';
 		  }
-		  
+
 		  if (roleTextElement) {
 			roleTextElement.textContent = role || 'Requestor';
 		  }
 
-		  if (roleElement) {
+		  if (roleElement && roleContainer) {
+			// Clean up previous state
+			const oldDropdown = roleContainer.querySelector('#role-switcher-dropdown');
+			if (oldDropdown) oldDropdown.remove();
+			const oldArrow = roleElement.querySelector('.role-arrow');
+			if (oldArrow) oldArrow.remove();
+			roleElement.onclick = null;
+			roleElement.classList.remove('cursor-pointer', 'hover:bg-gray-100');
+
+			// Set base class
 			roleElement.className = "inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg transition-all duration-300 border";
-			
+
+			// Apply role-specific colors
 			if (role === 'Approver') {
 			  roleElement.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
 			} else if (role === 'Tester') {
@@ -629,7 +646,53 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 			} else {
 			  roleElement.classList.add('bg-slate-50', 'text-slate-600', 'border-slate-200');
 			}
+
+			// Build dropdown if multiple roles exist
+			if (allRoles && allRoles.length > 1) {
+			  roleElement.classList.add('cursor-pointer', 'hover:bg-gray-100');
+
+			  const arrowSvg = '<svg class="ml-1 h-4 w-4 role-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>';
+			  roleElement.insertAdjacentHTML('beforeend', arrowSvg);
+
+			  const dropdown = document.createElement('div');
+			  dropdown.id = 'role-switcher-dropdown';
+			  dropdown.className = 'hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200 origin-top-right';
+
+			  const roleList = document.createElement('div');
+			  roleList.className = 'py-1';
+			  allRoles.forEach(r => {
+				const item = document.createElement('a');
+				item.href = '#';
+				item.textContent = r;
+				item.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+				if (r === role) item.classList.add('font-semibold', 'bg-gray-50');
+				item.onclick = (e) => { e.preventDefault(); e.stopPropagation(); switchRole(r); };
+				roleList.appendChild(item);
+			  });
+			  dropdown.appendChild(roleList);
+			  roleContainer.appendChild(dropdown);
+
+			  roleElement.onclick = (e) => {
+				e.stopPropagation();
+				dropdown.classList.toggle('hidden');
+				if (!dropdown.classList.contains('hidden')) {
+				  document.addEventListener('click', () => dropdown.classList.add('hidden'), { once: true });
+				}
+			  };
+			}
 		  }
+		}
+
+		function switchRole(newRole) {
+		  if (state.currentRole === newRole) return;
+		  state.currentRole = newRole;
+		  
+		  // Re-fetch data for the new role context to ensure correct permissions are applied.
+		  showView('view-loading');
+		  google.script.run
+			.withSuccessHandler(handleServerResponse)
+			.withFailureHandler(handleServerFailure)
+			.authenticateAndFetch(state.token, ''); // Fetch dashboard view
 		}
 
 		// ============ INTERACTIVE FILTER CONTROL BINDINGS ============
@@ -661,9 +724,9 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		 */
 		function handleFilterInput() {
 		  const processed = getProcessedRows();
-		  if (state.viewerRole === 'Tester') {
+		  if (state.currentRole === 'Tester') {
 			TesterView.renderDashboard(processed, { preFiltered: true });
-		  } else if (state.viewerRole === 'Approver') {
+		  } else if (state.currentRole === 'Approver') {
 			ApproverView.renderDashboard(processed, { preFiltered: true });
 		  } else {
 			RequestorView.renderDashboard(processed, { preFiltered: true });
@@ -675,9 +738,9 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		 */
 		function getProcessedRows() {
 		  let rows = [];
-		  if (state.viewerRole === 'Tester') {
+		  if (state.currentRole === 'Tester') {
 			rows = TesterView.getFilteredDataset(state.allRows);
-		  } else if (state.viewerRole === 'Approver') {
+		  } else if (state.currentRole === 'Approver') {
 			rows = ApproverView.getFilteredDataset(state.allRows);
 		  } else {
 			rows = state.allRows; // Requestor path
@@ -747,7 +810,7 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		  if (cachedRow) {
 			document.getElementById('global-filter-bar').classList.add('hidden-view');
 			state.currentBase64Id = urlSafeB64(btoa(cachedRow.requestId));
-			const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
+			const viewModule = (state.currentRole === 'Tester') ? TesterView : (state.currentRole === 'Approver' ? ApproverView : RequestorView);
 			viewModule.renderDetails(cachedRow);
 			updateAddressBar(cachedRow.requestId);
 		  } else {
@@ -762,15 +825,16 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 
 		function submitDecision(payload) {
 		  showView('view-loading');
+		  payload.actingRole = state.currentRole;
 		  google.script.run
 			.withSuccessHandler(function (updatedRow) {
 			  if (updatedRow && updatedRow.error) {
 				toast('Failed to submit decision: ' + updatedRow.error, true);
-				const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+				const activeContainer = (state.currentRole === 'Tester') ? 'container-tester' : (state.currentRole === 'Approver' ? 'container-approver' : 'container-requestor');
 				showView(activeContainer);
-				if (state.viewerRole === 'Tester') {
+				if (state.currentRole === 'Tester') {
 				  TesterView.renderDashboard(getProcessedRows(), { preFiltered: true });
-				} else if (state.viewerRole === 'Approver') {
+				} else if (state.currentRole === 'Approver') {
 				  ApproverView.renderDashboard(getProcessedRows(), { preFiltered: true });
 				} else {
 				  RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });
@@ -785,18 +849,18 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 				state.allRows[idx] = updatedRow;
 			  }
 			  
-			  const viewModule = (state.viewerRole === 'Tester') ? TesterView : (state.viewerRole === 'Approver' ? ApproverView : RequestorView);
-			  const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+			  const viewModule = (state.currentRole === 'Tester') ? TesterView : (state.currentRole === 'Approver' ? ApproverView : RequestorView);
+			  const activeContainer = (state.currentRole === 'Tester') ? 'container-tester' : (state.currentRole === 'Approver' ? 'container-approver' : 'container-requestor');
 			  showView(activeContainer);
 			  viewModule.renderDetails(updatedRow);
 			})
 			.withFailureHandler(function (err) {
 			  toast('Failed to submit decision: ' + err.message, true);
-			  const activeContainer = (state.viewerRole === 'Tester') ? 'container-tester' : (state.viewerRole === 'Approver' ? 'container-approver' : 'container-requestor');
+			  const activeContainer = (state.currentRole === 'Tester') ? 'container-tester' : (state.currentRole === 'Approver' ? 'container-approver' : 'container-requestor');
 			  showView(activeContainer);
-			  if (state.viewerRole === 'Tester') {
+			  if (state.currentRole === 'Tester') {
 				TesterView.renderDashboard(getProcessedRows(), { preFiltered: true });
-			  } else if (state.viewerRole === 'Approver') {
+			  } else if (state.currentRole === 'Approver') {
 				ApproverView.renderDashboard(getProcessedRows(), { preFiltered: true });
 			  } else {
 				RequestorView.renderDashboard(getProcessedRows(), { preFiltered: true });

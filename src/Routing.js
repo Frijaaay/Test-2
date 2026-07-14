@@ -1,7 +1,6 @@
 /**
  * Handles HTML Web App evaluations and client-to-server router gateways.
  */
-
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile('Index');
   template.initialParam = (e && e.parameter && e.parameter.dXJsX3BhcmFt) || '';

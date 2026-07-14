@@ -12,11 +12,14 @@
   </div>
 
   <div class="flex items-center gap-3">
-    <!-- Live status pulse + Context Indicator -->
-    <span id="role-indicator" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-600 uppercase tracking-wider bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200/60">
-      <span class="w-1.5 h-1.5 rounded-full bg-current" style="animation: pulse-dot 2s ease-in-out infinite;"></span>
-      <span id="role-indicator-text">...</span>
-    </span>
+    <!-- Wrapper for role indicator to provide positioning context for the dropdown -->
+    <div id="role-indicator-container" class="relative">
+      <!-- Live status pulse + Context Indicator -->
+      <span id="role-indicator" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-600 uppercase tracking-wider bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200/60">
+        <span class="w-1.5 h-1.5 rounded-full bg-current" style="animation: pulse-dot 2s ease-in-out infinite;"></span>
+        <span id="role-indicator-text">...</span>
+      </span>
+    </div>
 
     <div class="h-4 w-[1px] bg-gray-200"></div>
 

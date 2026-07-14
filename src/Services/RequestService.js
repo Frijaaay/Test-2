@@ -94,9 +94,10 @@ const RequestService = {
       const sheet = SheetRepository.getSheetByGid(Config.MAIN_SHEET);
       const data = sheet.getDataRange().getValues();
       const rows = [];
+      const roles = role.split(',');
 
       let testResultsMap = {};
-      if (role === 'Tester' || role === 'Approver') {
+      if (roles.includes('Tester') || roles.includes('Approver')) {
         testResultsMap = this.getAllTestResults();
       }
 
@@ -104,7 +105,7 @@ const RequestService = {
         const row = data[i];
         const requestorEmail = String(SheetRepository.getCell(sheet, row, 'Email Address'));
 
-        if (role === 'Tester' || role === 'Approver' || requestorEmail.toLowerCase() === email.toLowerCase()) {
+        if (roles.includes('Tester') || roles.includes('Approver') || requestorEmail.toLowerCase() === email.toLowerCase()) {
           const formattedRow = this.formatRow(sheet, row);
           if (testResultsMap[formattedRow.requestId]) {
             formattedRow.testResults = testResultsMap[formattedRow.requestId];
@@ -128,8 +129,9 @@ const RequestService = {
 
       const row = data[i];
       const requestorEmail = String(SheetRepository.getCell(sheet, row, 'Email Address'));
+      const roles = role.split(',');
 
-      if (role === 'Requestor' && requestorEmail.toLowerCase() !== email.toLowerCase()) {
+      if (roles.length === 1 && roles[0] === 'Requestor' && requestorEmail.toLowerCase() !== email.toLowerCase()) {
         return { error: 'You do not have access to this request.' };
       }
 
@@ -137,8 +139,7 @@ const RequestService = {
       formatted.viewerRole = role;
       formatted.viewerEmail = email;
 
-      // Dynamic Join: If Approver or Tester, pull results from RESULT_SHEET [3]
-      if (role === 'Approver' || role === 'Tester') {
+      if (roles.includes('Approver') || roles.includes('Tester')) {
         formatted.testResults = this.getTestResultsByRequestId(requestId);
       }
 
@@ -211,9 +212,14 @@ const RequestService = {
       const session = AuthService.getSession(token);
       if (!session) return { error: 'Session expired. Please refresh.' };
 
-      const role = session.role;
-      if (role !== 'Tester' && role !== 'Approver') {
-        return { error: 'You do not have permission to submit a review decision.' };
+      const userRoles = session.role.split(',');
+      const actingRole = payload.actingRole;
+
+      if (!actingRole || !userRoles.includes(actingRole)) {
+        return { error: 'You do not have permission to perform this action with the selected role.' };
+      }
+      if (actingRole !== 'Tester' && actingRole !== 'Approver') {
+        return { error: 'You do not have permission to submit a review decision with this role.' };
       }
 
       const requestId = AuthService.base64UrlDecode(base64Id);
@@ -246,7 +252,7 @@ const RequestService = {
       // ==========================================
       // A. TESTER WORKFLOW TRANSITIONS (Slide 3)
       // ==========================================
-      if (role === 'Tester') {
+      if (actingRole === 'Tester') {
         updates['Status'] = payload.newStatus;
         updates['Tester'] = session.email;
 
@@ -286,7 +292,7 @@ const RequestService = {
       // ==========================================
       // B. APPROVER SIGN-OFF TRANSITIONS (Slide 5/6)
       // ==========================================
-      if (role === 'Approver') {
+      if (actingRole === 'Approver') {
         let finalStatus = '';
         if (payload.newStatus === 'Return For Revision') {
           finalStatus = 'Return For Revision';
@@ -410,7 +416,7 @@ const RequestService = {
     try {
       const session = AuthService.getSession(token);
       if (!session) return { error: 'Session expired. Please refresh.' };
-      if (session.role !== 'Approver') return { error: 'You do not have permission to add approvers.' };
+      if (!session.role.split(',').includes('Approver')) return { error: 'You do not have permission to add approvers.' };
 
       const requestId = AuthService.base64UrlDecode(base64Id);
       const sheet = SheetRepository.getSheetByGid(Config.MAIN_SHEET);

@@ -1,11 +1,19 @@
 /**
  * Global Configurations and Script Property Accessors
  */
+
+function testLogEmails() {
+  Logger.log(Config.getApproverEmail());
+  Logger.log(Config.getAppUrl());
+  Logger.log(Config.getAuthUrl());
+  Logger.log(Config.getFinalNotifCcEmail());
+}
+
 const Config = {
-  ENV: 'live',
+  ENV: 'dev',
 
   // Script Cache Version Namespace (Busts cache globally when incremented) [2.5]
-  CACHE_VERSION: PropertiesService.getScriptProperties().getProperty('CACHE_VER') || 'dev1',
+  CACHE_VERSION: this.ENV === 'dev_1_0' ? 'dev' : PropertiesService.getScriptProperties().getProperty('CACHE_VER') || 'prod_1_0',
 
   // Spreadsheet Identifiers
   MAIN_SHEET: 1378952939,
@@ -19,14 +27,14 @@ const Config = {
 
   // Automated Notification Recipients [Slide 5/6 Alignment]
   getApproverEmail() {
-    return PropertiesService.getScriptProperties().getProperty('APPROVERS_EMAIL') || 'jay.cortez+mallet@convergeict.com';
+    return this.ENV === 'dev' ? 'jay.cortez+mallet@convergeict.com' : PropertiesService.getScriptProperties().getProperty('APPROVERS_EMAIL');
   },
   getFinalNotifCcEmail() {
-    return PropertiesService.getScriptProperties().getProperty('FINAL_NOTIF_CC_EMAIL') || 'jay.cortez@convergeict.com';
+    return this.ENV === 'dev' ? 'jay.cortez+bryan@convergeict.com, jay.cortez+pm@convergeict.com' : PropertiesService.getScriptProperties().getProperty('FINAL_NOTIF_CC_EMAIL');
   },
 
   getSecretKey() { 
-    return PropertiesService.getScriptProperties().getProperty('SECRET_KEY') || '019ebd5b80887a40ba6fbbbcbbe546be'; 
+    return PropertiesService.getScriptProperties().getProperty('SECRET_KEY'); 
   },
   
   getAppUrl() { 
