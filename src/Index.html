@@ -802,18 +802,20 @@ function openAttachmentPreview(fileData, attachmentLabel) {
 		}
 
 		// ============ OPTIMIZED QUEUE NAVIGATION ============
-		function openRequest(requestId) {
-		  const cachedRow = state.allRows.find(function(row) {
+		function openRequest(requestId, forceRefresh) {
+		  const cachedRow = !forceRefresh && state.allRows.find(function(row) {
 			return String(row.requestId) === String(requestId);
 		  });
 
 		  if (cachedRow) {
+			// Render from client-side cache for speed
 			document.getElementById('global-filter-bar').classList.add('hidden-view');
 			state.currentBase64Id = urlSafeB64(btoa(cachedRow.requestId));
 			const viewModule = (state.currentRole === 'Tester') ? TesterView : (state.currentRole === 'Approver' ? ApproverView : RequestorView);
 			viewModule.renderDetails(cachedRow);
 			updateAddressBar(cachedRow.requestId);
 		  } else {
+			// Fetch fresh data from the server if not in cache or if refresh is forced
 			showView('view-loading');
 			const base64Id = btoa(requestId);
 			google.script.run

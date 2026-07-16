@@ -139,13 +139,68 @@
           </div>
         </div>
       </div>
+
+      <!-- Tester Results & Findings -->
+      <div id="tester-test-results-card" class="cvg-card p-6 anim-fade-up-3" style="border-left: 3px solid #048986;">
+        <div id="tester-results-content" class="hidden-view">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="text-[15px]">📋</span>
+            <h2 class="section-title">Tester Results &amp; Findings</h2>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="section-eyebrow mb-1">Test Result</p>
+              <span id="tester-test-outcome-badge">—</span>
+            </div>
+            <div>
+              <p class="section-eyebrow mb-1">Timestamp</p>
+              <p id="tester-test-timestamp" class="text-gray-800 font-medium font-mono-cvg text-[12px]">—</p>
+            </div>
+            <div id="tester-review-remarks-wrap" class="col-span-2 hidden-view">
+              <p class="section-eyebrow mb-1">Tester Remarks</p>
+              <p id="tester-review-remarks" class="text-gray-700 whitespace-pre-wrap bg-amber-50 p-3 rounded-lg border border-amber-100 text-[12.5px]"></p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Test Findings</p>
+              <p id="tester-test-findings" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Known Issues</p>
+              <p id="tester-test-issues" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Recommendation</p>
+              <p id="tester-test-recommendation" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-1">Required Actions</p>
+              <p id="tester-test-actions" class="text-gray-700 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 text-[12.5px]">—</p>
+            </div>
+            <div class="col-span-2">
+              <p class="section-eyebrow mb-2">Supporting Screenshots / Files</p>
+              <div id="tester-test-screenshots-container" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+        <div id="tester-no-results-content" class="hidden-view">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="text-[15px]">📋</span>
+            <h2 class="section-title">Tester Results &amp; Findings</h2>
+          </div>
+          <div class="empty-state !py-8 !px-4 text-center">
+            <span class="icon-chip icon-chip-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg></span>
+            <h4 class="mt-3">No Test Results Submitted</h4>
+            <p>The detailed evaluation form has not yet been submitted for this request.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT: Narrow column — Control Panel only -->
     <div class="flex flex-col gap-5 lg:sticky lg:top-[84px]">
 
       <!-- Action Panel: Stage 2 (Evaluation Form) -->
-      <div id="tester-stage2-form-card" class="hidden-view cvg-card p-5 anim-fade-up-3">
+      <div id="tester-stage2-form-card" class="hidden-view cvg-card p-5 anim-fade-up-4">
         <div class="flex items-center gap-2.5 mb-4">
           <span class="text-[15px]">📋</span>
           <h2 class="section-title">Submit Evaluation Form</h2>
@@ -161,7 +216,7 @@
       </div>
 
       <!-- Action Panel: Stage 1 (Claims and Review Transitions) -->
-      <div id="tester-action-panel" class="hidden-view anim-fade-up-3 flex flex-col gap-5">
+      <div id="tester-action-panel" class="hidden-view anim-fade-up-4 flex flex-col gap-5">
 
         <!-- Stage 1 Decision Controls -->
         <div id="tester-stage1-controls" class="hidden-view cvg-card p-5">
@@ -379,6 +434,35 @@
       renderAttachmentButtons('tester-file-release', data.releaseNotesUrl, 'Release Notes');
       renderAttachmentButtons('tester-file-supporting', data.supportingDocsUrl, 'Supporting Doc');
 
+      // Render Test Results
+      const resultsCard = document.getElementById('tester-test-results-card');
+      const resultsContent = document.getElementById('tester-results-content');
+      const noResultsContent = document.getElementById('tester-no-results-content');
+      
+      if (data.testResults) {
+        resultsCard.classList.remove('hidden-view');
+        resultsContent.classList.remove('hidden-view');
+        noResultsContent.classList.add('hidden-view');
+
+        document.getElementById('tester-test-outcome-badge').outerHTML = badgeHtml(data.testResultStatus || data.testResults.recommendation || 'Completed', 'tester-test-outcome-badge');
+        
+        const testRemarks = data.testRemarks || '';
+        const reviewRemarksWrap = document.getElementById('tester-review-remarks-wrap');
+        document.getElementById('tester-review-remarks').textContent = testRemarks;
+        reviewRemarksWrap.classList.toggle('hidden-view', !testRemarks);
+
+        document.getElementById('tester-test-timestamp').textContent = data.testResults.timestamp || '—';
+        document.getElementById('tester-test-findings').textContent = data.testResults.testFindings || '—';
+        document.getElementById('tester-test-issues').textContent = data.testResults.knownIssues || '—';
+        document.getElementById('tester-test-recommendation').textContent = data.testResults.recommendation || '—';
+        document.getElementById('tester-test-actions').textContent = data.testResults.requiredActions || '—';
+        renderAttachmentButtons('tester-test-screenshots-container', data.testResults.supportingFiles, 'Screenshot');
+      } else {
+        resultsCard.classList.remove('hidden-view');
+        resultsContent.classList.add('hidden-view');
+        noResultsContent.classList.remove('hidden-view');
+      }
+
       this.resetTesterDecisionPanel();
       
       const isUnassigned = (!data.tester);
@@ -485,21 +569,11 @@
           if (this.state.pollIntervalId) clearInterval(this.state.pollIntervalId);
 
           this.state.pollIntervalId = setInterval(() => {
-            pollForTestResult(() => { // onSuccess callback
+            pollForTestResult(() => {
               clearInterval(this.state.pollIntervalId);
               this.state.pollIntervalId = null;
-              this.state.formSubmitted = true;
-              this.setFormButtonState('success');
-              toast('Test result submission detected.');
-
-              // If a decision was already selected, re-enable the submit button
-              if (this.state.decisionChoice) {
-                const isCompletion = this.state.decisionChoice !== 'Return For Revision';
-                if (isCompletion) {
-                  submitBtn.disabled = false;
-                  submitBtn.title = '';
-                }
-              }
+              toast('Test result submission detected, refreshing view...');
+              openRequest(data.requestId, true); // Force a refresh from the server
             });
           }, 5000); // Poll every 5 seconds
           return true; // Allow default link behavior

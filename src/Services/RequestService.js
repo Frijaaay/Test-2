@@ -96,10 +96,7 @@ const RequestService = {
       const rows = [];
       const roles = role.split(',');
 
-      let testResultsMap = {};
-      if (roles.includes('Tester') || roles.includes('Approver')) {
-        testResultsMap = this.getAllTestResults();
-      }
+      const testResultsMap = this.getAllTestResults();
 
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
@@ -139,9 +136,7 @@ const RequestService = {
       formatted.viewerRole = role;
       formatted.viewerEmail = email;
 
-      if (roles.includes('Approver') || roles.includes('Tester')) {
-        formatted.testResults = this.getTestResultsByRequestId(requestId);
-      }
+      formatted.testResults = this.getTestResultsByRequestId(requestId);
 
       return formatted;
     } catch (err) {
@@ -204,6 +199,21 @@ const RequestService = {
     } catch (err) {
       console.error('getTestResultsByRequestId error: ' + err.stack);
       return null;
+    }
+  },
+
+  checkForTestResult(token, base64Id) {
+    try {
+      const session = AuthService.getSession(token);
+      if (!session) return { error: 'Session expired.' };
+
+      const requestId = AuthService.base64UrlDecode(base64Id);
+      const testResults = this.getTestResultsByRequestId(requestId);
+
+      return { submitted: !!testResults };
+    } catch (err) {
+      console.error('checkForTestResult error: ' + err.stack);
+      return { submitted: false, error: 'Error checking for result.' };
     }
   },
 
