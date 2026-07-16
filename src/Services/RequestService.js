@@ -275,6 +275,8 @@ const RequestService = {
           if (payload.remarks) updates['Test Remarks'] = payload.remarks;
           SheetRepository.updateResponseRow(requestId, updates);
 
+          const testResults = this.getTestResultsByRequestId(requestId);
+
           // Automated Action: Trigger Email Alert to Approver [Slide 4]
           const approverAlertDetails = {
             request_id: requestId,
@@ -283,7 +285,9 @@ const RequestService = {
             date_submitted: details.date_submitted,
             tester_email: session.email,
             outcome: payload.outcome,
-            remarks: payload.remarks || 'None'
+            remarks: payload.remarks || null,
+            test_plan_url: SheetRepository.getCell(sheet, row, 'Test Plan'),
+            test_results: testResults
           };
           EmailService.sendTestCompletedAlertToApprover(Config.getApproverEmail(), approverAlertDetails);
         }
@@ -311,6 +315,11 @@ const RequestService = {
         updates['Approval Remarks'] = payload.remarks || '';
         SheetRepository.updateResponseRow(requestId, updates);
 
+        const testResults = this.getTestResultsByRequestId(requestId);
+        const testPlanUrl = SheetRepository.getCell(sheet, row, 'Test Plan');
+        const testResultStatus = SheetRepository.getCell(sheet, row, 'Test Result Status');
+        const testRemarks = SheetRepository.getCell(sheet, row, 'Test Remarks');
+
         const additionalApprovers = SheetRepository.getCell(sheet, row, 'Additional Approvers') || '';
         const staticCCs = Config.getFinalNotifCcEmail(); // Re-add static CC list from config
         
@@ -333,7 +342,11 @@ const RequestService = {
           date_submitted: details.date_submitted,
           final_status: finalStatus,
           remarks: payload.remarks || 'No remarks provided.',
-          cc_recipients: ccList
+          cc_recipients: ccList,
+          test_results: testResults,
+          test_plan_url: testPlanUrl,
+          testResultStatus: testResultStatus,
+          testRemarks: testRemarks
         };
         EmailService.sendFinalClosureNotification(requestorEmail, closureDetails);
       }

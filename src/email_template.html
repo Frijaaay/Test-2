@@ -21,33 +21,65 @@
         <p><?!= data.message_body ?></p>
         
         <div style="background-color: #f9f9f9; border-left: 4px solid #048986; padding: 15px; margin: 20px 0;">
-          <p style="margin: 5px 0;"><strong>Request ID:</strong> <?= data.request_id ?></p>
-          <p style="margin: 5px 0;"><strong>Request Type:</strong> <?= data.type ?></p>
-          <p style="margin: 5px 0;"><strong>Summary of Request:</strong> <?= data.summary ?></p>
-          <p style="margin: 5px 0;"><strong>Date Submitted:</strong> <?= data.date_submitted ?></p>
-          
-          <? if (data.test_schedule) { ?>
-            <p style="margin: 5px 0;"><strong>Test Schedule:</strong> <?= data.test_schedule ?></p>
-          <? } ?>
-          
-          <? if (data.reason) { ?>
-            <p style="margin: 5px 0;"><strong>Remarks:</strong> <?!= data.reason ?></p>
+          <div>
+            <h3 style="color: #0f766e; margin-top: 0; margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #ccfbf1; padding-bottom: 10px;">Request Details</h3>
+            <p style="margin: 5px 0;"><strong>Request ID:</strong> <?= data.request_id ?></p>
+            <p style="margin: 5px 0;"><strong>Request Type:</strong> <?= data.type ?></p>
+            <p style="margin: 5px 0;"><strong>Summary of Request:</strong> <?= data.summary ?></p>
+            <p style="margin: 5px 0;"><strong>Date Submitted:</strong> <?= data.date_submitted ?></p>
+            
+            <? if (data.test_schedule) { ?>
+              <p style="margin: 5px 0;"><strong>Test Schedule:</strong> <?= data.test_schedule ?></p>
+            <? } ?>
+            
+            <? if (data.reason) { ?>
+              <p style="margin: 5px 0;"><strong>Remarks:</strong> <?!= data.reason ?></p>
+            <? } ?>
+            <!-- File Attachments -->
+            <? if (data.hasAttachments) { ?>
+                <h3 style="color: #048986; margin-bottom: 10px; font-size: 16px;">Attachments</h3>
+            <ul style="padding-left: 20px; margin-top: 0;">
+              <? data.attachment_list.forEach(function(file) { ?>
+                <li style="margin-bottom: 5px;">
+                  <a href="<?= file.url ?>" style="color: #048986; text-decoration: underline;">
+                    <?= file.name ?>
+                  </a>
+                </li>
+                <? }); ?>
+              </ul>
+              <? } ?>
+              <br>
+          </div>
+            
+          <!-- Test Summary Section -->
+          <? if (data.testResultStatus || (data.test_results && data.test_results.testFindings) || data.testRemarks) { ?>
+            <div>
+              <h3 style="color: #0f766e; margin-top: 0; margin-bottom: 15px; font-size: 16px; border-bottom: 2px solid #ccfbf1; padding-bottom: 10px;">Test Summary</h3>
+              
+              <? if (data.testResultStatus) { ?>
+                <p style="margin: 5px 0;"><strong>Test Result Status:</strong> <?= data.testResultStatus ?></p>
+              <? } ?>
+
+              <? if (data.testRemarks) { ?>
+                <p style="margin: 5px 0;"><strong>Test Remarks:</strong> <? data.testRemarks ?></p>
+              <? } ?>
+
+              <? if (data.test_results && data.test_results.testFindings) { ?>
+                <p style="margin: 5px 0;"><strong>Test Findings:</strong> <?= data.test_results.testFindings ?></p>
+              <? } ?>
+
+              <? if (data.hasSupportingFiles) { ?>
+                <p style="margin: 5px 0 5px 0;"><strong>Supporting Files:</strong></p>
+                <ul style="padding-left: 20px; margin-top: 0; margin-bottom: 5px;">
+                  <? data.supporting_files_list.forEach(function(file) { ?>
+                    <li style="margin-bottom: 5px;"><a href="<?= file.url ?>" style="color: #048986; text-decoration: underline;" target="_blank"><?= file.name ?></a></li>
+                  <? }); ?>
+                </ul>
+              <? } ?>
+            </div>
           <? } ?>
         </div>
 
-        <!-- File Attachments -->
-        <? if (data.hasAttachments) { ?>
-          <h3 style="color: #048986; margin-bottom: 10px; font-size: 16px;">Attached Files</h3>
-          <ul style="padding-left: 20px; margin-top: 0;">
-            <? data.attachment_list.forEach(function(file) { ?>
-              <li style="margin-bottom: 5px;">
-                <a href="<?= file.url ?>" style="color: #048986; text-decoration: underline;">
-                  <?= file.name ?>
-                </a>
-              </li>
-            <? }); ?>
-          </ul>
-        <? } ?>
         <? if (data.footer_closing) { ?>
         <p style="white-space: pre-line; color: #555555;"><?= data.footer_closing ?></p>
         <? } ?>

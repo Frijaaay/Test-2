@@ -10,7 +10,7 @@ function testLogEmails() {
 }
 
 const Config = {
-  ENV: 'dev',
+  ENV: 'live',
 
   // Script Cache Version Namespace (Busts cache globally when incremented) [2.5]
   CACHE_VERSION: this.ENV === 'dev_1_0' ? 'dev' : PropertiesService.getScriptProperties().getProperty('CACHE_VER') || 'prod_1_0',

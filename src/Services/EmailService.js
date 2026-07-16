@@ -3,6 +3,23 @@
  * Safely evaluates template parameters and controls email transmission with logging.
  */
 const EmailService = {
+
+  _parseFileLinks(filesString) {
+    if (!filesString) return [];
+    const urls = String(filesString).split(',').map(s => s.trim()).filter(Boolean);
+    return urls.map((url, index) => {
+        let name = `Supporting File ${index + 1}`;
+        try {
+            const urlObject = new URL(url);
+            const pathParts = urlObject.pathname.split('/');
+            const potentialName = pathParts[pathParts.length - 1];
+            if (potentialName) {
+                name = decodeURIComponent(potentialName);
+            }
+        } catch (e) { /* Use default name if URL parsing fails */ }
+        return { name, url };
+    });
+  },
   
   sendMail(recipient, params) {
     try {
@@ -13,6 +30,13 @@ const EmailService = {
       params.hasAttachments = !!(params.attachment_list && params.attachment_list.length > 0);
       params.hasButtons = !!(params.buttons && params.buttons.length > 0);
       params.footer_closing = params.footer_closing || null;
+
+      if (params.test_results && params.test_results.supportingFiles) {
+        params.supporting_files_list = this._parseFileLinks(params.test_results.supportingFiles);
+      } else {
+        params.supporting_files_list = [];
+      }
+      params.hasSupportingFiles = params.supporting_files_list.length > 0;
 
       template.data = params;
 
@@ -117,6 +141,7 @@ const EmailService = {
         console.error("Could not parse approver name from email: " + approverEmail);
       }
     }
+
     const params = {
       subject: subject,
       title: "Request for Testing is pending for your approval.",
@@ -127,6 +152,10 @@ const EmailService = {
       summary: details.summary,
       date_submitted: details.date_submitted,
       test_schedule: details.test_schedule || "",
+      test_plan_url: details.test_plan_url || null,
+      test_results: details.test_results || null,
+      testResultStatus: details.outcome || null,
+      testRemarks: details.remarks || null,
       buttons: [
         {
           text: "Review & Sign-Off",
@@ -139,6 +168,7 @@ const EmailService = {
 
   sendFinalClosureNotification(recipientEmail, details) {
     const subject = `Request for Testing #${details.request_id} is: ${details.final_status}`;
+
     const params = {
       subject: subject,
       title: `Request for testing outcome: ${details.final_status}`,
@@ -149,7 +179,11 @@ const EmailService = {
       summary: details.summary,
       date_submitted: details.date_submitted,
       reason: details.remarks,
-      cc: details.cc_recipients
+      cc: details.cc_recipients,
+      test_plan_url: details.test_plan_url || null,
+      test_results: details.test_results || null,
+      testResultStatus: details.testResultStatus || null,
+      testRemarks: details.testRemarks || null
     };
     return this.sendMail(recipientEmail, params);
   },
